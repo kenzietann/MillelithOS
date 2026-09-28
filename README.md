@@ -109,7 +109,7 @@ Hello from OS!
 
 - [x] Build a native x86-64 EFI application
 - [x] Print through the UEFI text console
-- [ ] Access the UEFI graphics framebuffer
+- [x] Access the UEFI graphics framebuffer
 - [ ] Obtain the firmware memory map
 - [ ] Load a separate kernel executable
 - [ ] Call `ExitBootServices`
