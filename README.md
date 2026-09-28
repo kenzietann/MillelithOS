@@ -1,4 +1,4 @@
-# From-Scratch C++ OS
+# Millelith OS
 
 An experimental operating system written in freestanding C++.
 
