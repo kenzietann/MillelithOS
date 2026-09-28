@@ -1,66 +1,47 @@
-using U8 = unsigned char;
-using U32 = unsigned int;
-using U64 = unsigned long long;
+#include "uefi.hpp"
+// UTF-16 message passed to UEFI's OutputString service.
+static char16_t message[] = u"Hello from OS!\r\n";
+static char16_t error_message[] = u"Error: UEFI failed to print the startup message.\r\n";
+static char16_t ready_message[] = u"UEFI text output is available.\r\n";
 
-using EFI_STATUS = U64;
-using EFI_HANDLE = void*;
+EFI_STATUS print_message(
+  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* console,
+  char16_t* text
+) {
+  return console->OutputString(console, text);
+}
 
-struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
-
-using EFI_RESET = EFI_STATUS (__attribute__((ms_abi)) *)(
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL*, U8
-);
-
-using EFI_OUTPUT_STRING = EFI_STATUS(__attribute__((ms_abi)) *)(
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL*, char16_t*  
-);
-
-struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL {
-  EFI_RESET Reset;
-  EFI_OUTPUT_STRING OutputString;
-};
-
-struct EFI_TABLE_HEADER {
-  U64 Signature;
-  U32 Revision;
-  U32 HeaderSize;
-  U32 CRC32;
-  U32 Reserved;
-};
-
-struct EFI_SYSTEM_TABLE {
-  EFI_TABLE_HEADER Hdr;
-  char16_t* FirmwareVendor;
-  U32 FirmwareRevision;
-  EFI_HANDLE ConsoleInHandle;
-  void* ConIn;
-  EFI_HANDLE ConsoleOutHandle;
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* ConOut;
-};
-
-static_assert(sizeof(void*) == 8);
-static_assert(sizeof(char16_t) == 2);
-static_assert(sizeof(EFI_TABLE_HEADER) == 24);
-static_assert(__builtin_offsetof(EFI_SYSTEM_TABLE, ConOut) == 64);
-
-static char16_t message[] = u"JENNY KONTOLLLLLLLL!\r\n";
-
-extern "C" EFI_STATUS __attribute__((ms_abi))
-EfiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table){
+// UEFI Application entry point. Use C naming and the
+// x86-64 UEFI calling convention.
+extern "C" EFI_STATUS EFIAPI EfiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* system_table){
   (void)image_handle;
 
+  // Verify that the system table, console protocol,
+  // and printing function are available.
   if(system_table == nullptr ||
      system_table->ConOut == nullptr ||
      system_table->ConOut->OutputString == nullptr){
-      return 0x8000000000000002ULL;
-    }
-  EFI_STATUS status = system_table->ConOut->OutputString(
-    system_table->ConOut, message
-  );
+    return 0x8000000000000002ULL;
+  }
 
+  // Ask UEFI's text-output protocol to display the message.
+  EFI_STATUS status = print_message(system_table->ConOut, message);
+
+  // Return any printing error to the firmware.
   if(status != 0){
+    print_message(system_table->ConOut, error_message);
+
     return status;
   }
+
+  status = print_message(system_table->ConOut, ready_message);
+  if(status != 0){
+    print_message(system_table->ConOut, error_message);
+
+    return status;
+  }
+
+  // Keep the application alive, halting the CPU again after each interrupt.
   for(;;){
     __asm__ volatile("hlt");
   }

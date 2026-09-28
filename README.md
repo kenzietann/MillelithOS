@@ -4,6 +4,30 @@ An experimental operating system written in freestanding C++.
 
 The project currently boots as a native x86-64 UEFI application, communicates with the firmware directly, and does not use a third-party bootloader or operating-system framework.
 
+## Vision
+
+Millelith OS is a standalone operating system built from scratch for Millelith Security operators.
+
+It provides the normal foundations of a modern operating system, including protected processes, virtual memory, filesystems, hardware drivers, networking, a terminal, and a graphical desktop.
+
+Millelith OS runs only trusted Millelith applications. Security tools execute as isolated user processes and must follow the active authorized-engagement scope. The operating system enforces target restrictions, permissions, rate limits, audit logging, and evidence preservation below the application layer.
+
+Millelith OS does not aim to run Windows, macOS, or Linux applications directly. Applications are compiled specifically for the Millelith platform.
+
+## Version 1
+
+The first usable version will:
+
+- Boot into an interactive Millelith shell
+- Load an engagement scope from disk
+- Support one virtual network adapter
+- Configure IPv4 networking
+- Run one built-in native assessment tool
+- Reject targets outside the loaded scope
+- Record commands and results
+- Save evidence to disk
+- Provide no mechanism for executing arbitrary third-party programs
+
 ## Current milestone
 
 The first UEFI application successfully:
