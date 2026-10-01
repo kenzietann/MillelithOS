@@ -64,12 +64,13 @@ overwrites that text, so the final display is solid dark blue.
 - [x] Verify that the Linux AMD64 build environment and Docker are usable.
 - [x] Create a minimal Debian live-build configuration.
 - [x] Produce a live ISO.
-- [ ] Boot the ISO through UEFI in QEMU and reach a Linux terminal.
+- [x] Boot the ISO through UEFI in QEMU and reach a Linux terminal.
 
 The AMD64 Docker builder and generated Debian/trixie configuration were verified
 on 1 October 2026. The first build completed successfully and produced
 `/build/millelith-os-amd64.hybrid.iso` inside the `millelith-build` container.
-Linux boot in QEMU has not yet been tested.
+The live ISO successfully boots through UEFI in QEMU and reaches a Linux
+terminal, running Debian 13.7 with kernel 6.12.111+deb13-amd64 on x86_64.
 
 ### Upcoming milestones
 
