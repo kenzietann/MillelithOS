@@ -34,9 +34,8 @@ Clang and LLD handle compilation and linking. QEMU gives me a place to test
 changes, while UEFI provides the firmware services used during startup.
 
 I also built a Debian live ISO along the way. That experiment helped me explore
-the difference between assembling a Linux system and writing a kernel. I've
-kept it in `distro/live-build/` as a reference, but the main project is now the
-kernel I want to write myself.
+the difference between assembling a Linux system and writing a kernel. Its
+build setup has been removed now that I'm focusing on my own kernel.
 
 ## What I want to learn
 
@@ -81,8 +80,8 @@ The final screen is dark blue.
 - [x] Boot it through UEFI in QEMU and reach a terminal.
 
 This worked on 1 October 2026. The image ran Debian 13.7 with kernel
-`6.12.111+deb13-amd64` on `x86_64`. It remains a separate experiment from the
-kernel work.
+`6.12.111+deb13-amd64` on `x86_64`. This was a separate experiment from the
+kernel work; its build files have since been removed.
 
 ### 4. Reading the UEFI memory map
 
@@ -119,9 +118,6 @@ Millelith tools and testing on physical hardware are goals for later in the proj
 The current UEFI application is in `boot/uefi/main.cpp`. Its UEFI types,
 structures, and function signatures are in `boot/uefi/uefi.hpp`. A kernel
 directory will be added when I start the separate executable.
-
-The Linux experiment lives in `distro/live-build/`. Its `Dockerfile` sets up
-the builder, and `auto/config` contains the live-image settings.
 
 Artwork goes under `assets/`, with the logo and icon in `assets/branding/`.
 Compiled binaries, generated images, `esp/`, and writable firmware state
@@ -213,4 +209,3 @@ me whether every feature works.
 
 - [UEFI Boot Services and memory allocation](https://uefi.org/specs/UEFI/2.11/07_Services_Boot_Services.html)
 - [UEFI status codes](https://uefi.org/specs/UEFI/2.10/Apx_D_Status_Codes.html)
-- [Debian Live Manual](https://live-team.pages.debian.net/live-manual/html/live-manual.en.html)
