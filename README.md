@@ -4,6 +4,15 @@
 
 # Millelith OS
 
+<p align="center">
+  <a href="#milestone-status"><img src="https://img.shields.io/badge/status-development-2563eb?style=flat-square" alt="Status: development"></a>
+  <a href="https://www.kernel.org/"><img src="https://img.shields.io/badge/kernel-Linux-FCC624?style=flat-square&amp;logo=linux&amp;logoColor=white" alt="Kernel: Linux"></a>
+  <a href="https://www.debian.org/releases/trixie/"><img src="https://img.shields.io/badge/base-Debian_13-A81D33?style=flat-square&amp;logo=debian&amp;logoColor=white" alt="Base: Debian 13"></a>
+  <a href="#project-direction"><img src="https://img.shields.io/badge/platform-amd64-2563eb?style=flat-square" alt="Platform: amd64"></a>
+  <a href="#milestone-status"><img src="https://img.shields.io/badge/boot-UEFI_verified-2ea44f?style=flat-square" alt="Boot: UEFI verified"></a>
+  <a href="https://github.com/kenzietann/millelithos/stargazers"><img src="https://img.shields.io/github/stars/kenzietann/millelithos?style=flat-square&amp;logo=github&amp;logoColor=white&amp;color=2563eb" alt="GitHub stars"></a>
+</p>
+
 Millelith OS is an operating system project based on the Linux kernel for
 desktop use, software development, and Millelith Security's internal tools
 for authorized security assessments.
@@ -14,7 +23,8 @@ distribution base is Debian 13 (`trixie`).
 This repository contains a C++ UEFI boot experiment and an initial Debian
 live-build configuration. The console and framebuffer milestones were
 successfully tested in QEMU during earlier learning stages. The first Linux
-live ISO has been built successfully; UEFI boot verification is still pending.
+live ISO has been built and verified to boot through UEFI in QEMU to a Linux
+terminal.
 
 ## Project direction
 
@@ -29,8 +39,8 @@ Millelith OS aims to provide:
 - Engagement scope management, activity logging, and evidence storage
   for security work.
 
-These are development goals. The initial Linux image still needs runtime
-testing. The full desktop, developer toolchain, installer, and Millelith
+These are development goals. The initial Linux image has passed its console
+boot test. The full desktop, developer toolchain, installer, and Millelith
 integrations remain later milestones.
 
 The Linux kernel provides the foundation for process management, memory,
@@ -207,12 +217,12 @@ The final output is an ISO file that can be written to a USB drive to boot a PC.
 Docker is used on the development machine; the PC does not require Docker
 to boot Millelith OS.
 
-The first ISO will be a live system that runs from the boot media. Installation
+The first ISO is a live system that runs from the boot media. Installation
 to a disk is a later milestone.
 
 The builder recipe and initial image configuration are stored in
-`distro/live-build/`. ISO build and boot commands will be documented after the
-first image has been built and tested.
+`distro/live-build/`. The first image built from this configuration has passed
+the console boot test recorded in the milestone status above.
 
 ## Learning and development workflow
 
