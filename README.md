@@ -5,145 +5,143 @@
 # Millelith OS
 
 <p align="center">
-  <a href="#milestone-status"><img src="https://img.shields.io/badge/status-development-2563eb?style=flat-square" alt="Status: development"></a>
-  <a href="https://www.kernel.org/"><img src="https://img.shields.io/badge/kernel-Linux-FCC624?style=flat-square&amp;logo=linux&amp;logoColor=white" alt="Kernel: Linux"></a>
-  <a href="https://www.debian.org/releases/trixie/"><img src="https://img.shields.io/badge/base-Debian_13-A81D33?style=flat-square&amp;logo=debian&amp;logoColor=white" alt="Base: Debian 13"></a>
-  <a href="#project-direction"><img src="https://img.shields.io/badge/platform-amd64-2563eb?style=flat-square" alt="Platform: amd64"></a>
-  <a href="#milestone-status"><img src="https://img.shields.io/badge/boot-UEFI_verified-2ea44f?style=flat-square" alt="Boot: UEFI verified"></a>
+  <a href="#progress"><img src="https://img.shields.io/badge/status-development-2563eb?style=flat-square" alt="Status: development"></a>
+  <a href="#what-i-want-to-learn"><img src="https://img.shields.io/badge/language-C%2B%2B20-00599C?style=flat-square&amp;logo=cplusplus&amp;logoColor=white" alt="Primary language: C++20"></a>
+  <a href="#the-plan"><img src="https://img.shields.io/badge/platform-amd64-2563eb?style=flat-square" alt="Initial platform: amd64"></a>
+  <a href="#progress"><img src="https://img.shields.io/badge/boot-UEFI_app_verified-2ea44f?style=flat-square" alt="Boot: UEFI application verified"></a>
   <a href="https://github.com/kenzietann/millelithos/stargazers"><img src="https://img.shields.io/github/stars/kenzietann/millelithos?style=flat-square&amp;logo=github&amp;logoColor=white&amp;color=2563eb" alt="GitHub stars"></a>
 </p>
 
-Millelith OS is an operating system project based on the Linux kernel for
-desktop use, software development, and Millelith Security's internal tools
-for authorized security assessments.
+I'm building Millelith OS to learn how computers work. I know basic C++ syntax,
+but I want to understand what happens after the code is compiled: how the CPU
+runs it, where its data goes, and how it talks to hardware.
 
-The initial target is AMD64/x86-64 computers with UEFI. The selected
-distribution base is Debian 13 (`trixie`).
+The plan is to write my own bootloader and kernel, then build the rest of the
+OS around them. I'm starting with x86-64, UEFI, and QEMU, using C++20 and
+assembly where it's needed.
 
-This repository contains a C++ UEFI boot experiment and an initial Debian
-live-build configuration. The console and framebuffer milestones were
-successfully tested in QEMU during earlier learning stages. The first Linux
-live ISO has been built and verified to boot through UEFI in QEMU to a Linux
-terminal.
+Right now, the C++ code boots as a UEFI application, prints text, and fills the
+screen with a color. That's the starting point for the bootloader. There isn't
+a separate kernel yet.
 
-## Project direction
+## The plan
 
-Millelith OS aims to provide:
+The UEFI application in `boot/uefi/` will prepare the machine, load the kernel,
+and pass along the information it needs to start. Once the kernel is ready to
+take over, the bootloader will call `ExitBootServices` and transfer control.
 
-- A graphical desktop, terminal, file manager, networking, and system updates.
-- Storage that persists across reboots.
-- An installer for installing the system on a PC's disk.
-- C/C++, Python, JavaScript, Go, and Rust development tools.
-- Linux packages and containers for developer workflows.
-- Packages for Millelith's internal tools.
-- Engagement scope management, activity logging, and evidence storage
-  for security work.
+Clang and LLD handle compilation and linking. QEMU gives me a place to test
+changes, while UEFI provides the firmware services used during startup.
 
-These are development goals. The initial Linux image has passed its console
-boot test. The full desktop, developer toolchain, installer, and Millelith
-integrations remain later milestones.
+I also built a Debian live ISO along the way. That experiment helped me explore
+the difference between assembling a Linux system and writing a kernel. I've
+kept it in `distro/live-build/` as a reference, but the main project is now the
+kernel I want to write myself.
 
-The Linux kernel provides the foundation for process management, memory,
-filesystems, networking, and drivers. The C++ experiment in `boot/uefi/`
-is used to learn about booting and communicating with firmware.
+## What I want to learn
 
-## Milestone status
+I'm starting with types, pointers, structs, binary, and hexadecimal. I want to
+be able to follow a piece of code through compilation and linking, then
+understand the instructions, registers, calling conventions, and memory it
+uses when it runs.
 
-### Milestone 1 — UEFI boot and text output
+As the kernel grows, I'll work on memory allocation, interrupts, and drivers.
+That will also give me reasons to learn data structures and algorithms:
+choosing how to track free memory, queue work, look up data, and compare the
+time and memory costs of different approaches.
 
-- [x] Create an x86-64 EFI application.
-- [x] Boot the application through UEFI firmware in QEMU.
-- [x] Call the UEFI console and print messages.
-- [x] Keep the application active after startup.
+Later, I want to understand processes, system calls, filesystems, and networking.
+Permissions, input validation, and isolation will matter as soon as the system
+starts handling programs and data of its own.
 
-### Milestone 2 — Graphics and framebuffer
+I'm taking this one step at a time. I want to be able to explain each part as
+I build it, so I'm starting with small changes I can test and understand.
 
-- [x] Locate the Graphics Output Protocol (GOP).
-- [x] Read the display mode information and framebuffer address.
-- [x] Validate pointers, buffer size, and supported pixel formats.
-- [x] Write a color to every visible pixel position.
-- [x] Display a dark blue screen using RGB `(24, 65, 110)` or `#18416E`.
+## Progress
 
-Startup text is printed before the framebuffer is filled. Filling the screen
-overwrites that text, so the final display is solid dark blue.
+### 1. UEFI startup
 
-### Milestone 3 — First Linux boot
+- [x] Boot an x86-64 EFI application in QEMU.
+- [x] Print messages through the firmware console.
+- [x] Keep the application running after startup.
 
-- [x] Select Debian 13 (`trixie`) as the base.
-- [x] Set up tools on the Mac: Colima, Docker, and additional Lima guest agents.
-- [x] Verify that the Linux AMD64 build environment and Docker are usable.
-- [x] Create a minimal Debian live-build configuration.
-- [x] Produce a live ISO.
-- [x] Boot the ISO through UEFI in QEMU and reach a Linux terminal.
+### 2. Drawing to the screen
 
-The AMD64 Docker builder and generated Debian/trixie configuration were verified
-on 1 October 2026. The first build completed successfully and produced
-`/build/millelith-os-amd64.hybrid.iso` inside the `millelith-build` container.
-The live ISO successfully boots through UEFI in QEMU and reaches a Linux
-terminal, running Debian 13.7 with kernel 6.12.111+deb13-amd64 on x86_64.
+- [x] Find the Graphics Output Protocol and read its display information.
+- [x] Check pointers, buffer size, and pixel formats before writing.
+- [x] Fill the visible screen with RGB `(24, 65, 110)`, or `#18416E`.
 
-### Upcoming milestones
+The startup messages appear first, then the framebuffer fill covers them.
+The final screen is dark blue.
 
-- [ ] Add a desktop and verify user interaction.
-- [ ] Add development tools and test program compilation and execution.
-- [ ] Verify networking, file access, and package updates.
-- [ ] Add an installer and persistent storage.
-- [ ] Verify that the system boots and preserves data after removing the ISO.
-- [ ] Apply Millelith OS visual branding to the live system.
-- [ ] Package and test Millelith's internal tools.
-- [ ] Add engagement policies, logging, and evidence storage.
-- [ ] Test physical hardware and expand platform support.
+### 3. The Linux experiment
 
-## Current repository structure
+- [x] Set up a Debian 13 live-build configuration.
+- [x] Build a live ISO in an AMD64 Debian container.
+- [x] Boot it through UEFI in QEMU and reach a terminal.
 
-```text
-.
-├── README.md
-├── .gitignore
-├── assets/
-│   └── branding/
-│       ├── millelith-os-icon.png
-│       └── millelith-os-logo.png
-├── boot/
-│   └── uefi/
-│       ├── main.cpp
-│       └── uefi.hpp
-└── distro/
-    └── live-build/
-        ├── Dockerfile
-        └── auto/
-            └── config
-```
+This worked on 1 October 2026. The image ran Debian 13.7 with kernel
+`6.12.111+deb13-amd64` on `x86_64`. It remains a separate experiment from the
+kernel work.
 
-- `uefi.hpp`: types, structures, and function signatures for UEFI interfaces.
-- `main.cpp`: application entry point, text output, GOP lookup, and
-  framebuffer filling.
-- `assets/branding/`: project logos and icons.
-- `distro/live-build/`: the Debian builder recipe and live-image configuration.
+### 4. Reading the UEFI memory map
 
-Compiled EFI files, the generated EFI filesystem for QEMU, and writable
-firmware state are excluded from Git through `.gitignore`.
+This is the next step. Before managing memory, I need to understand how firmware
+describes it and which regions are available.
 
-## Brand assets
+- [ ] Understand addresses, regions, pages, and memory ownership.
+- [ ] Define the descriptor and `GetMemoryMap` interface.
+- [ ] Allocate a buffer and read the map, handling the required buffer size.
+- [ ] Check the descriptor format and inspect the regions.
+- [ ] Understand how the map key is used by `ExitBootServices`.
+
+For this step, the application will stay in the UEFI boot services environment.
+
+### 5. Starting my own kernel
+
+- [ ] Create a separate freestanding C++ kernel executable.
+- [ ] Learn its executable format and load it into memory.
+- [ ] Pass startup data, including the framebuffer and memory map.
+- [ ] Get the final memory map, call `ExitBootServices`, and enter the kernel.
+- [ ] Show output from the kernel without using firmware boot services.
+
+After that, I'll work on kernel startup, the stack, logging, and CPU exceptions.
+Then come physical memory allocation, page tables, a heap, timer interrupts,
+and keyboard input.
+
+Further down the line are tasks and scheduling, protected user programs,
+system calls, device discovery, storage, and a filesystem. Networking, a shell,
+and a graphical interface will follow as the basics become usable. Native
+Millelith tools and testing on physical hardware are goals for later in the project.
+
+## Files
+
+The current UEFI application is in `boot/uefi/main.cpp`. Its UEFI types,
+structures, and function signatures are in `boot/uefi/uefi.hpp`. A kernel
+directory will be added when I start the separate executable.
+
+The Linux experiment lives in `distro/live-build/`. Its `Dockerfile` sets up
+the builder, and `auto/config` contains the live-image settings.
+
+Artwork goes under `assets/`, with the logo and icon in `assets/branding/`.
+Compiled binaries, generated images, `esp/`, and writable firmware state
+are ignored by Git.
+
+## Artwork
 
 <img src="assets/branding/millelith-os-icon.png" alt="Millelith OS icon" width="96">
 
-- [Millelith OS icon](assets/branding/millelith-os-icon.png)
-- [Millelith OS logo](assets/branding/millelith-os-logo.png)
+- [Icon](assets/branding/millelith-os-icon.png)
+- [Logo](assets/branding/millelith-os-logo.png)
 
-Brand artwork is stored in `assets/branding/`. Additional artwork, screenshots,
-and other project images can be organized under `assets/` as the project grows.
+## Running the UEFI application
 
-## Running the UEFI experiment
+These are the commands for the current console and framebuffer code.
 
-The following commands run the C++ experiment currently in this repository.
+### Requirements on macOS
 
-### macOS requirements
-
-- Clang with support for the `x86_64-unknown-uefi` target.
-- LLD and QEMU.
-
-Homebrew dependencies:
+You'll need Clang with the `x86_64-unknown-uefi` target, plus LLD and QEMU.
+The Homebrew dependencies are:
 
 ```sh
 brew install lld qemu
@@ -151,7 +149,7 @@ brew install lld qemu
 
 ### Compile
 
-Run from the repository root:
+Run this from the repository root:
 
 ```sh
 clang++ \
@@ -173,9 +171,9 @@ mkdir -p esp/EFI/BOOT
 cp BOOTX64.EFI esp/EFI/BOOT/BOOTX64.EFI
 ```
 
-The path `EFI/BOOT/BOOTX64.EFI` is used for default boot on x86-64 UEFI media.
+UEFI uses `EFI/BOOT/BOOTX64.EFI` as the default boot path on x86-64 media.
 
-Create a copy of the writable firmware state if it does not exist:
+Create the writable firmware state if you haven't already:
 
 ```sh
 if [ ! -f OVMF_VARS.fd ]; then
@@ -195,44 +193,24 @@ qemu-system-x86_64 \
   -net none
 ```
 
-Expected result: the program prints startup messages and then fills the screen
-with dark blue. The program remains active through its `hlt` loop.
+You should see the startup messages followed by a dark blue screen. The
+application then stays in its `hlt` loop.
 
-After changing the C++ code, compile again and copy `BOOTX64.EFI` into
-`esp/EFI/BOOT/` before restarting QEMU.
+After editing the C++ code, compile it again and copy the new `BOOTX64.EFI`
+into `esp/EFI/BOOT/` before restarting QEMU.
 
-## Linux build environment
+## How I'm working
 
-On an ARM64 Mac, Colima manages a virtual machine through Lima with QEMU as
-the backend for running Linux AMD64. Docker runs a Debian environment
-containing the ISO build tools.
+I type and test each step, with explanations as I go. If I can't explain what
+a piece of code does, I go back to the concept behind it before moving on.
+Keeping code, notes, and documentation open is part of that process.
 
-Build flow:
-
-```text
-Mac → Colima (Linux VM) → Docker (build tools) → Millelith OS ISO
-```
-
-The final output is an ISO file that can be written to a USB drive to boot a PC.
-Docker is used on the development machine; the PC does not require Docker
-to boot Millelith OS.
-
-The first ISO is a live system that runs from the boot media. Installation
-to a disk is a later milestone.
-
-The builder recipe and initial image configuration are stored in
-`distro/live-build/`. The first image built from this configuration has passed
-the console boot test recorded in the milestone status above.
-
-## Learning and development workflow
-
-Each stage is completed in small steps: understand its purpose, type the code
-or configuration, inspect the result, and test its behavior in QEMU.
-
-Successful compilation, successful boot, and working features are recorded
-as separate outcomes. Checklists are updated based on test results.
+I record compilation, boot, and feature tests separately. A successful build
+doesn't tell me whether the program boots, and a successful boot doesn't tell
+me whether every feature works.
 
 ## References
 
-- [Debian Live Manual](https://live-team.pages.debian.net/live-manual/html/live-manual.en.html)
+- [UEFI Boot Services and memory allocation](https://uefi.org/specs/UEFI/2.11/07_Services_Boot_Services.html)
 - [UEFI status codes](https://uefi.org/specs/UEFI/2.10/Apx_D_Status_Codes.html)
+- [Debian Live Manual](https://live-team.pages.debian.net/live-manual/html/live-manual.en.html)
