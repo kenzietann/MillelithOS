@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/branding/millelith-os-logo.png" alt="Millelith OS logo" width="720">
+</p>
+
 # Millelith OS
 
 Millelith OS is an operating system project based on the Linux kernel for
@@ -7,10 +11,10 @@ for authorized security assessments.
 The initial target is AMD64/x86-64 computers with UEFI. The selected
 distribution base is Debian 13 (`trixie`).
 
-This repository currently contains a C++ UEFI boot experiment. The console
-and framebuffer milestones were successfully tested in QEMU during earlier
-learning stages. Linux distribution configuration and ISO images will be
-recreated step by step.
+This repository contains a C++ UEFI boot experiment and an initial Debian
+live-build configuration. The console and framebuffer milestones were
+successfully tested in QEMU during earlier learning stages. The first Linux
+live ISO has been built successfully; UEFI boot verification is still pending.
 
 ## Project direction
 
@@ -25,8 +29,9 @@ Millelith OS aims to provide:
 - Engagement scope management, activity logging, and evidence storage
   for security work.
 
-These are development goals. The Linux features have not yet been implemented
-in a runnable image from the current repository.
+These are development goals. The initial Linux image still needs runtime
+testing. The full desktop, developer toolchain, installer, and Millelith
+integrations remain later milestones.
 
 The Linux kernel provides the foundation for process management, memory,
 filesystems, networking, and drivers. The C++ experiment in `boot/uefi/`
@@ -56,14 +61,15 @@ overwrites that text, so the final display is solid dark blue.
 
 - [x] Select Debian 13 (`trixie`) as the base.
 - [x] Set up tools on the Mac: Colima, Docker, and additional Lima guest agents.
-- [ ] Verify that the Linux AMD64 build environment and Docker are usable.
-- [ ] Create a minimal Debian live-build configuration.
-- [ ] Produce a live ISO.
+- [x] Verify that the Linux AMD64 build environment and Docker are usable.
+- [x] Create a minimal Debian live-build configuration.
+- [x] Produce a live ISO.
 - [ ] Boot the ISO through UEFI in QEMU and reach a Linux terminal.
 
-During the 1 October 2026 check, the `millelith-amd64` Colima profile was listed
-as running, but its Docker connection was unavailable. The build environment
-needs to be checked before ISO creation continues.
+The AMD64 Docker builder and generated Debian/trixie configuration were verified
+on 1 October 2026. The first build completed successfully and produced
+`/build/millelith-os-amd64.hybrid.iso` inside the `millelith-build` container.
+Linux boot in QEMU has not yet been tested.
 
 ### Upcoming milestones
 
@@ -72,7 +78,7 @@ needs to be checked before ISO creation continues.
 - [ ] Verify networking, file access, and package updates.
 - [ ] Add an installer and persistent storage.
 - [ ] Verify that the system boots and preserves data after removing the ISO.
-- [ ] Add Millelith OS visual branding.
+- [ ] Apply Millelith OS visual branding to the live system.
 - [ ] Package and test Millelith's internal tools.
 - [ ] Add engagement policies, logging, and evidence storage.
 - [ ] Test physical hardware and expand platform support.
@@ -83,18 +89,39 @@ needs to be checked before ISO creation continues.
 .
 ├── README.md
 ├── .gitignore
-└── boot/
-    └── uefi/
-        ├── main.cpp
-        └── uefi.hpp
+├── assets/
+│   └── branding/
+│       ├── millelith-os-icon.png
+│       └── millelith-os-logo.png
+├── boot/
+│   └── uefi/
+│       ├── main.cpp
+│       └── uefi.hpp
+└── distro/
+    └── live-build/
+        ├── Dockerfile
+        └── auto/
+            └── config
 ```
 
 - `uefi.hpp`: types, structures, and function signatures for UEFI interfaces.
 - `main.cpp`: application entry point, text output, GOP lookup, and
   framebuffer filling.
+- `assets/branding/`: project logos and icons.
+- `distro/live-build/`: the Debian builder recipe and live-image configuration.
 
 Compiled EFI files, the generated EFI filesystem for QEMU, and writable
 firmware state are excluded from Git through `.gitignore`.
+
+## Brand assets
+
+<img src="assets/branding/millelith-os-icon.png" alt="Millelith OS icon" width="96">
+
+- [Millelith OS icon](assets/branding/millelith-os-icon.png)
+- [Millelith OS logo](assets/branding/millelith-os-logo.png)
+
+Brand artwork is stored in `assets/branding/`. Additional artwork, screenshots,
+and other project images can be organized under `assets/` as the project grows.
 
 ## Running the UEFI experiment
 
@@ -166,10 +193,10 @@ After changing the C++ code, compile again and copy `BOOTX64.EFI` into
 ## Linux build environment
 
 On an ARM64 Mac, Colima manages a virtual machine through Lima with QEMU as
-the backend for running Linux AMD64. Once the Docker service is accessible,
-Docker will run a Debian environment containing the ISO build tools.
+the backend for running Linux AMD64. Docker runs a Debian environment
+containing the ISO build tools.
 
-Planned build flow:
+Build flow:
 
 ```text
 Mac → Colima (Linux VM) → Docker (build tools) → Millelith OS ISO
@@ -182,9 +209,9 @@ to boot Millelith OS.
 The first ISO will be a live system that runs from the boot media. Installation
 to a disk is a later milestone.
 
-ISO build configuration and commands will be documented after they are created
-and tested. There is currently no distribution configuration or Linux ISO
-in this repository.
+The builder recipe and initial image configuration are stored in
+`distro/live-build/`. ISO build and boot commands will be documented after the
+first image has been built and tested.
 
 ## Learning and development workflow
 
