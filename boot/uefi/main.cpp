@@ -26,15 +26,10 @@ EFI_STATUS print_message(
   return console->OutputString(console, text);
 }
 
-EFI_STATUS fill_framebuffer(
-  EFI_GRAPHICS_OUTPUT_PROTOCOL* graphics,
-  U8 red,
-  U8 green,
-  U8 blue
-) {
+EFI_STATUS fill_framebuffer(EFI_GRAPHICS_OUTPUT_PROTOCOL* graphics, U8 red, U8 green, U8 blue) {
   if (graphics == nullptr ||
       graphics->Mode == nullptr ||
-      graphics->Mode->Info == nullptr ||
+      graphics->Mode->Info == nullptr ||  
       graphics->Mode->FrameBufferBase == 0 ||
       graphics->Mode->FrameBufferSize == 0) {
     return 0x8000000000000002ULL;
