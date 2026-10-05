@@ -18,6 +18,8 @@ static char16_t graphics_ready_message[] = u"UEFI graphics output is available.\
 static char16_t graphics_error_message[] = u"Error: UEFI graphics output is unavailable\r\n";
 static char16_t framebuffer_ready_message[] = u"UEFI Framebuffer is available.\r\n";
 static char16_t framebuffer_error_message[] = u"Error: no writable UEFI framebuffer is available.\r\n";
+static char16_t memory_map_ready_message[] = u"Memory map buffer size receieved.\r\n";
+static char16_t memory_map_error_message[] = u"Error: memory map size query failed.\r\n";
 
 EFI_STATUS print_message(
   EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL* console,
@@ -169,6 +171,47 @@ extern "C" EFI_STATUS EFIAPI EfiMain(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE* 
   if(status != 0){
     print_message(system_table->ConOut, framebuffer_error_message);
 
+    return status;
+  }
+
+  if (system_table->BootServices->GetMemoryMap == nullptr){
+    return 0x8000000000000003ULL;
+  }
+
+  UINTN memory_map_size = 0;
+  UINTN map_key = 0;
+  UINTN descriptor_size = 0;
+  U32 descriptor_version = 0;
+
+  status = system_table->BootServices->GetMemoryMap(
+    &memory_map_size,
+    nullptr,
+    &map_key,
+    &descriptor_size,
+    &descriptor_version
+  );
+
+  if(status != EFI_BUFFER_TOO_SMALL){
+    print_message(system_table->ConOut, memory_map_error_message);
+
+    if (status == 0){
+      return EFI_BAD_BUFFER_SIZE;
+    }
+
+    return status;
+  }
+
+  if(memory_map_size == 0){
+    print_message(system_table->ConOut, memory_map_error_message);
+    return EFI_BAD_BUFFER_SIZE;
+  }
+
+  status = print_message(
+    system_table->ConOut,
+    memory_map_ready_message
+  );
+
+  if(status != 0){
     return status;
   }
 

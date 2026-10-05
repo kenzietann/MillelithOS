@@ -8,9 +8,12 @@ using U32 = unsigned int;
 using U64 = unsigned long long;
 
 using EFI_STATUS = U64;
+constexpr EFI_STATUS EFI_BUFFER_TOO_SMALL = 0x8000000000000005ULL;
+constexpr EFI_STATUS EFI_BAD_BUFFER_SIZE = 0x8000000000000004ULL;
 using EFI_HANDLE = void*;
 using UINTN = U64;
 using EFI_PHYSICAL_ADDRESS = U64;
+using EFI_VIRTUAL_ADDRESS = U64;
 
 struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL;
 struct EFI_RUNTIME_SERVICES;
@@ -48,6 +51,22 @@ struct alignas(8) EFI_GUID {
   U8 Data4[8];
 };
 
+struct EFI_MEMORY_DESCRIPTOR {
+  U32 Type;
+  EFI_PHYSICAL_ADDRESS PhysicalStart;
+  EFI_VIRTUAL_ADDRESS VirtualStart;
+  U64 NumberOfPages;
+  U64 Attribute;
+};
+
+using EFI_GET_MEMORY_MAP = EFI_STATUS (EFIAPI *)(
+  UINTN* MemoryMapSize,
+  EFI_MEMORY_DESCRIPTOR* MemoryMap,
+  UINTN* MapKey,
+  UINTN* DescriptorSize,
+  U32* DescriptorVersion
+);
+
 using EFI_LOCATE_PROTOCOL = EFI_STATUS (EFIAPI *)(
   EFI_GUID* protocol,
   void* registration,
@@ -56,7 +75,9 @@ using EFI_LOCATE_PROTOCOL = EFI_STATUS (EFIAPI *)(
 
 struct EFI_BOOT_SERVICES {
   EFI_TABLE_HEADER Hdr;
-  U64 ServicesBeforeLocateProtocol[37];
+  U64 ServicesBeforeGetMemoryMap[4];
+  EFI_GET_MEMORY_MAP GetMemoryMap;
+  U64 ServicesBeforeLocateProtocol[32];
   EFI_LOCATE_PROTOCOL LocateProtocol;
 };
 
@@ -122,6 +143,7 @@ static_assert(__builtin_offsetof(EFI_SYSTEM_TABLE, ConOut) == 64);
 static_assert(__builtin_offsetof(EFI_SYSTEM_TABLE, BootServices) == 96);
 static_assert(sizeof(EFI_GUID) == 16);
 static_assert(alignof(EFI_GUID) == 8);
+static_assert(__builtin_offsetof(EFI_BOOT_SERVICES, GetMemoryMap) == 56);
 static_assert(__builtin_offsetof(EFI_BOOT_SERVICES, LocateProtocol) == 320);
 static_assert(sizeof(EFI_BOOT_SERVICES) == 328);
 static_assert(sizeof(EFI_PIXEL_BITMASK) == 16);
