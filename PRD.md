@@ -65,8 +65,8 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Implement `EfiGuid`, `EfiBootServices`, and `LocateProtocol`.
 - [x] Query Graphics Output Protocol (GOP) and obtain linear framebuffer pointer and stride.
 - [x] Render Millelith Red splash screen.
-- [ ] Implement FAT32 file reading protocol to load `vmlinuz` and `initrd` into physical RAM.
-- [ ] Implement Linux 64-bit EFI boot protocol handover (`ExitBootServices` and kernel jump).
+- [x] Implement FAT32 file reading protocol to load `vmlinuz` and `initrd` into physical RAM.
+- [x] Implement Linux 64-bit EFI boot protocol handover (`ExitBootServices` and kernel jump).
 
 ### Phase 2: Millelith Init (PID 1 System in Rust)
 *The critical heart of the OS userspace.*

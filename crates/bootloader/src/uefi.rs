@@ -108,7 +108,12 @@ pub struct EfiBootServices {
     pub raise_tpl: usize,
     pub restore_tpl: usize,
     // Memory allocation services
-    pub allocate_pages: usize,
+    pub allocate_pages: unsafe extern "efiapi" fn(
+      alloc_type: u32,
+      memory_type: u32,
+      pages: usize,
+      memory: *mut u64,
+    ) -> EfiStatus,
     pub free_pages: usize,
     pub get_memory_map: usize,
     pub allocate_pool: usize,
@@ -131,11 +136,25 @@ pub struct EfiBootServices {
     pub locate_device_path: usize,
     pub install_configuration_table: usize,
     // Image loading services
-    pub image_load: usize,
-    pub image_start: usize,
+    pub image_load: unsafe extern "efiapi" fn(
+        boot_policy: u8,
+        parent_image_handle: EfiHandle,
+        device_path: *mut core::ffi::c_void,
+        source_buffer: *mut core::ffi::c_void,
+        source_size: usize,
+        image_handle: *mut EfiHandle,
+    ) -> EfiStatus,
+    pub image_start:unsafe extern "efiapi" fn(
+        image_handle: EfiHandle,
+        exit_data_size: *mut usize,
+        exit_data: *mut *mut u16,
+    ) -> EfiStatus,
     pub exit: usize,
     pub image_unload: usize,
-    pub exit_boot_services: usize,
+    pub exit_boot_services: unsafe extern "efiapi" fn(
+      image_handle: EfiHandle,
+      map_key: usize,
+    ) -> EfiStatus,
     // Miscellaneous services
     pub get_next_monotonic_count: usize,
     pub stall: usize,
@@ -158,6 +177,13 @@ pub struct EfiBootServices {
     ) -> EfiStatus,
 }
 
+// Allocate memory at any available physical address below max
+pub const EFI_ALLOCATE_ANY_PAGES: u32 = 0;
+// Loader data memory type (freed or reclaimed by OS after boot)
+pub const EFI_LOADER_DATA: u32 = 2;
+// Page size in bytes (4 KiB)
+pub const EFI_PAGE_SIZE: usize = 4096;
+
 // Master table passed by UEFI firmware to the bootloader entry point
 #[repr(C)]
 pub struct EfiSystemTable {
@@ -175,3 +201,62 @@ pub struct EfiSystemTable {
     pub number_of_table_entries: usize,
     pub configuration_table: *mut core::ffi::c_void,
 }
+
+// GUID for UEFI Simple File System Protocol: 964e5b22-6459-11d2-8e39-00a0c969723b
+pub const EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID: EfiGuid = EfiGuid {
+    data1: 0x964e5b22,
+    data2: 0x6459,
+    data3: 0x11d2,
+    data4: [0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b],
+};
+
+#[repr(C)]
+pub struct EfiFileProtocol {
+  pub revision: u64,
+  
+  // Open a file relative to this directory
+  pub open: unsafe extern "efiapi" fn(
+    this: *mut EfiFileProtocol,
+    new_handle: *mut *mut EfiFileProtocol,
+    file_name: *const u16,
+    open_mode: u64,
+    attributes: u64
+  ) -> EfiStatus,
+
+  // Close the file handle
+  pub close: unsafe extern "efiapi" fn(this: *mut EfiFileProtocol) -> EfiStatus,
+  pub delete: usize,
+
+  // Read data from the file into a memory buffer
+  pub read: unsafe extern "efiapi" fn(
+    this: *mut EfiFileProtocol,
+    buffer_size: *mut usize,
+    buffer: *mut core::ffi::c_void
+  ) -> EfiStatus,
+  pub write: usize,
+  pub get_position: unsafe extern "efiapi" fn(
+    this: *mut EfiFileProtocol,
+    position: *mut u64,
+  ) -> EfiStatus,
+  pub set_position: unsafe extern "efiapi" fn(
+    this: *mut EfiFileProtocol,
+    position: u64
+  ) -> EfiStatus,
+  pub get_info: usize,
+  pub set_info: usize,
+  pub flush: usize,
+}
+
+// Protocol used to access a FAT file system volume
+#[repr(C)]
+pub struct EfiSimpleFileSystemProtocol {
+  pub revision: u64,
+
+  // Open the root directory of the volume
+  pub open_volume: unsafe extern "efiapi" fn(
+    this: *mut EfiSimpleFileSystemProtocol,
+    root: *mut *mut EfiFileProtocol
+  ) -> EfiStatus
+}
+
+pub const EFI_FILE_MODE_READ: u64 = 0x0000000000000001;

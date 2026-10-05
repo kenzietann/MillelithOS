@@ -79,20 +79,35 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Booted in QEMU with firmware text console output (`Hello from Millelith OS!`).
 - [x] Implement `LocateProtocol` and query Graphics Output Protocol (GOP).
 - [x] Verify linear framebuffer rendering: Fill screen with Millelith Red.
-- [ ] Implement file system reading to load `vmlinuz` and `initrd` into physical memory.
-- [ ] Hand off execution to Linux kernel via 64-bit EFI boot protocol.
+- [x] Implement FAT32 file reading protocol to load `vmlinuz` and `initrd` into physical RAM.
+- [x] Implement Linux 64-bit EFI boot protocol handover (`ExitBootServices` and kernel jump).
 
 ### 3. Phase 2: Millelith Init (PID 1 in Rust)
-- [ ] Implement standalone freestanding Rust PID 1 binary (`/sbin/init`).
-- [ ] Mount `/proc`, `/sys`, and `/dev` virtual filesystems.
-- [ ] Implement signal handling and orphan process reaping.
-- [ ] Spawn the primary shell session.
+- [ ] Implement freestanding Rust PID 1 binary (`/sbin/init`).
+- [ ] Mount fundamental virtual filesystems: `/proc` (procfs), `/sys` (sysfs), `/dev` (devtmpfs).
+- [ ] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
+- [ ] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
+- [ ] Implement orphan process reaping (preventing zombie processes).
+- [ ] Spawn the primary Millelith login / shell session.
 
-### 4. Phase 3: Millelith Shell & Core Utilities
-- [ ] Interactive REPL with syntax parsing and AST generation.
-- [ ] Process pipeline execution using `fork()`, `execve()`, and `pipe()`.
+### 4. Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
+- [ ] Interactive REPL with prompt rendering and line editing.
+- [ ] Command string lexer and Abstract Syntax Tree (AST) parser.
+- [ ] Process execution pipeline using `fork()` and `execve()`.
+- [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
 - [ ] File redirection (`<`, `>`, `>>`).
-- [ ] Memory-safe Unix core utilities (`ls`, `cat`, `ps`, `kill`, `uname`).
+- [ ] Built-in commands (`cd`, `exit`, `help`, `export`).
+
+### 5. Phase 4: Millelith Core Utilities (Rust Coreutils)
+- [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
+- [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
+- [ ] System diagnostics: `uname`, `free`, `uptime`.
+
+### 6. Phase 5: Distribution Packaging & Physical PC Deployment
+- [ ] Construct standalone root filesystem (`rootfs`) image.
+- [ ] Generate bootable GPT USB disk image (`millelith.img`) containing `/EFI/BOOT/BOOTX64.EFI`, `/boot/vmlinuz`, and `/boot/initrd`.
+- [ ] Boot Millelith OS on physical PC bare metal: verify Wi-Fi connectivity, GPU display, and interactive shell.
+
 
 ---
 
