@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "crates/boot_info",
+  "crates/bootloader",
+  "crates/kernel",
+]
+
+resolver = "2"
