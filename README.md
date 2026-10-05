@@ -9,54 +9,58 @@
   <a href="#what-i-want-to-learn"><img src="https://img.shields.io/badge/language-Rust-DEA584?style=flat-square&amp;logo=rust&amp;logoColor=white" alt="Primary language: Rust"></a>
   <a href="#the-plan"><img src="https://img.shields.io/badge/platform-amd64-2563eb?style=flat-square" alt="Initial platform: amd64"></a>
   <a href="#the-plan"><img src="https://img.shields.io/badge/boot-UEFI_native-2ea44f?style=flat-square" alt="Boot: UEFI native"></a>
-  <a href="#the-plan"><img src="https://img.shields.io/badge/target-PC_ready-f97316?style=flat-square" alt="Target: PC ready"></a>
-  <a href="https://github.com/kenzietann/millelithos/stargazers"><img src="https://img.shields.io/github/stars/kenzietann/millelithos?style=flat-square&amp;logo=github&amp;logoColor=white&amp;color=2563eb" alt="GitHub stars"></a>
+  <a href="#the-plan"><img src="https://img.shields.io/badge/type-Unix_OS-f97316?style=flat-square" alt="Type: Unix OS"></a>
+  <a href="https://github.com/kenzietann/MillelithOS/stargazers"><img src="https://img.shields.io/github/stars/kenzietann/MillelithOS?style=flat-square&amp;logo=github&amp;logoColor=white&amp;color=2563eb" alt="GitHub stars"></a>
 </p>
 
-I'm building Millelith OS to learn how computers work from the ground up. I want to understand what happens after code compiles: how the CPU executes instructions, how physical memory is mapped and protected, how hardware interrupts fire, and how an operating system coordinates programs.
+I'm building Millelith OS to learn how computers and operating systems work from the ground up. I want to understand what happens after code compiles: how firmware boots, how operating systems coordinate processes, and how software talks to hardware.
 
-I started with a C++ UEFI application proof-of-concept that booted in QEMU, initialized the GOP framebuffer, and filled the screen with `#18416E` blue (now safely preserved in the [`archive/cpp-uefi`](https://github.com/kenzietann/millelithos/tree/archive/cpp-uefi) branch).
+Rather than being confined to an emulator-only toy OS with no drivers, Millelith OS follows the proven architectural model of modern systems like Android and macOS:
+1. **Firmware & Boot (100% Rust):** A custom, zero-dependency bare-metal UEFI bootloader written in Rust from scratch.
+2. **The Hardware Engine:** The official Linux kernel (`vmlinuz`) driving physical PC hardware (Wi-Fi, 3D GPU, NVMe, USB 3.0, and multi-core CPU scheduling).
+3. **The Operating System & Userspace (100% Rust):** A custom Unix userspace built in Rust, featuring a custom PID 1 Init system (`/sbin/init`), an interactive command-line shell with syntax parsing and job control, and memory-safe core utilities.
 
-Now, I'm building the real system in **100% bare-metal Rust** (`#![no_std]`). The project is engineered to be **PC-ready from Day 1**—designed not just for emulators, but to boot and run on physical x86-64 PC hardware without relying on throwaway legacy shortcuts.
+The earlier C++ UEFI proof-of-concept is preserved in the [`archive/cpp-uefi`](https://github.com/kenzietann/MillelithOS/tree/archive/cpp-uefi) branch.
 
-For the complete technical specifications and phased milestone roadmap, see [PRD.md](PRD.md).
+For the detailed technical specifications and milestone roadmap, see [PRD.md](PRD.md).
 
 ---
 
 ## The Architecture
 
-Millelith OS avoids black-box bootloaders. It exercises full-pipeline control across three dedicated Rust crates:
-
 ```
-crates/
-├── boot_info/     # Shared data contracts (framebuffer info, memory map, ACPI pointers)
-├── bootloader/    # Custom Rust UEFI application (target: x86_64-unknown-uefi)
-└── kernel/        # Freestanding higher-half OS kernel (target: x86_64-unknown-none)
++-------------------------------------------------------------------------+
+|                        Millelith OS Architecture                         |
++-------------------------------------------------------------------------+
+| [Layer 3: Userspace & Apps (100% Custom Rust)]                          |
+|  - Millelith Init (PID 1): Mounts /proc, /sys, /dev, manages services   |
+|  - Millelith Shell: Interactive CLI, AST parser, job control, pipelines |
+|  - Millelith Coreutils: Essential Unix utilities in memory-safe Rust    |
++-------------------------------------------------------------------------+
+                                    │ POSIX Syscalls (fork, exec, pipe, ioctl)
++-----------------------------------v-------------------------------------+
+| [Layer 2: The Hardware Engine (The Linux Kernel - vmlinuz)]             |
+|  - Universal Hardware Support: Wi-Fi 6, 3D GPU (DRM/KMS), NVMe, USB 3.0 |
+|  - Virtual Memory (Paging), Hardware Ring 0 Protection, CPU Scheduler  |
++-------------------------------------------------------------------------+
+                                    │ Linux 64-bit Boot Protocol / EFI Handover
++-----------------------------------v-------------------------------------+
+| [Layer 1: Custom Rust UEFI Bootloader (crates/bootloader)]              |
+|  - Zero-dependency bare-metal PE32+ executable (x86_64-unknown-uefi)    |
+|  - Probes Graphics Output Protocol (GOP) for high-res splash screen     |
+|  - Locates and loads /boot/vmlinuz and /boot/initrd from FAT32/EXT4     |
+|  - Sets up boot parameters and transfers control to the kernel          |
++-------------------------------------------------------------------------+
 ```
-
-### 1. Bootloader (`crates/bootloader`)
-- Runs as an EFI binary (`/EFI/BOOT/BOOTX64.EFI`) on GPT/FAT32 media.
-- Sets the native GOP display mode and queries the linear framebuffer.
-- Loads and parses the 64-bit kernel ELF binary into physical RAM.
-- Discovers the ACPI RSDP pointer from UEFI configuration tables.
-- Prepares initial 4-level page tables with higher-half kernel mappings (`0xFFFF_8000_0000_0000`).
-- Retrieves the final UEFI memory map, exits boot services, and transfers control to the kernel.
-
-### 2. Kernel (`crates/kernel`)
-- Freestanding `#![no_std]` Rust binary starting at `_start(boot_info: &'static BootInfo) -> !`.
-- **Display & Diagnostics:** Framebuffer console with an embedded bitmap font engine and a dedicated on-screen Kernel Panic screen (BSOD) for physical hardware crash reporting.
-- **Hardware & Interrupts:** GDT, TSS with double-fault stack, and IDT for CPU exceptions. Legacy 8259 PIC is permanently masked in favor of the **Local APIC** and **APIC Timer**.
-- **Memory Subsystem:** Physical frame allocator strictly filtering `EfiConventionalMemory` (protecting ACPI, NVS, and MMIO zones), active 4-level paging, and a dynamic heap allocator.
-- **Concurrency:** Cooperative async/await task execution graduating into a preemptive round-robin scheduler.
 
 ---
 
 ## What I Want to Learn
 
-- **Hardware Abstraction & Firmware:** UEFI services, Graphics Output Protocol (GOP), ACPI tables (`RSDP`, `MADT`), and the Local APIC.
-- **Memory Management:** Physical frame allocators (bitmap/buddy), x86-64 4-level virtual page tables, TLB invalidation, and heap allocators (bump, linked-list, slab).
-- **CPU Architecture & Traps:** Privilege rings (Ring 0 vs. Ring 3), descriptor tables (GDT, IDT, TSS), exception handlers, and hardware context switching.
-- **Concurrency & Operating System Design:** Async executors, preemptive timer-driven schedulers, virtual filesystems (VFS), and system calls (`syscall`/`sysret`).
+- **Firmware & Bare-Metal Systems:** 64-bit UEFI calling conventions (`extern "efiapi"`), PE/COFF execution, raw pointers, memory alignment, and GOP linear framebuffer rendering.
+- **Operating System Core Concepts:** The POSIX system call interface (`fork`, `execve`, `mmap`, `pipe`, `ioctl`), signals (`SIGINT`, `SIGCHLD`), file descriptors, and virtual filesystems (`/proc`, `/sys`, `/dev`).
+- **PID 1 & System Lifecycle:** Building an Init system from scratch to manage process trees, reap orphan processes, and handle system shutdown.
+- **Compilers & Parsers:** Designing a custom shell with lexical analysis, AST parsing, and command execution pipelines.
 
 ---
 
@@ -67,33 +71,28 @@ crates/
 - [x] Print text via UEFI firmware console services.
 - [x] Acquire the Graphics Output Protocol (GOP) linear framebuffer.
 - [x] Verify pixel formats and fill the screen with `#18416E` blue.
-- [x] Query UEFI memory map descriptor sizes.
-- [x] *Archived to branch [`archive/cpp-uefi`](https://github.com/kenzietann/millelithos/tree/archive/cpp-uefi).*
+- [x] *Archived to branch [`archive/cpp-uefi`](https://github.com/kenzietann/MillelithOS/tree/archive/cpp-uefi).*
 
-### 2. Project Redesign (Rust PC-Native)
-- [x] Created comprehensive Product Requirements Document ([PRD.md](PRD.md)).
-- [x] Established "PC-Ready from Day 1" architecture (GOP, Local APIC, higher-half paging).
-- [ ] Initialize Cargo workspace (`boot_info`, `bootloader`, `kernel`).
-- [ ] Set up disk image generation script for QEMU and physical USB drives.
+### 2. Phase 1: The Rust UEFI Bootloader (`crates/bootloader`)
+- [x] Pure zero-dependency runtime implemented (`#![no_std]`, `#[panic_handler]`, `EfiStatus`).
+- [x] Modular architecture (`src/uefi.rs` for protocol definitions, `src/main.rs` for boot logic).
+- [x] Booted in QEMU with firmware text console output (`Hello from Millelith OS!`).
+- [x] Implement `LocateProtocol` and query Graphics Output Protocol (GOP).
+- [x] Verify linear framebuffer rendering: Fill screen with Millelith Red.
+- [ ] Implement file system reading to load `vmlinuz` and `initrd` into physical memory.
+- [ ] Hand off execution to Linux kernel via 64-bit EFI boot protocol.
 
-### 3. The Rust UEFI Bootloader
-- [ ] Implement UEFI GOP query and framebuffer acquisition via `uefi-rs`.
-- [ ] Read and parse `kernel.elf` from the boot media filesystem.
-- [ ] Locate the ACPI RSDP table pointer.
-- [ ] Query UEFI memory map, allocate kernel stack, and exit boot services.
-- [ ] Jump into kernel `_start` with `BootInfo`.
+### 3. Phase 2: Millelith Init (PID 1 in Rust)
+- [ ] Implement standalone freestanding Rust PID 1 binary (`/sbin/init`).
+- [ ] Mount `/proc`, `/sys`, and `/dev` virtual filesystems.
+- [ ] Implement signal handling and orphan process reaping.
+- [ ] Spawn the primary shell session.
 
-### 4. Framebuffer Console & CPU Traps
-- [ ] Embedded 8x16 bitmap font renderer and `println!` screen console.
-- [ ] Kernel panic screen displaying registers (`RIP`, `RSP`, `CR2`) on crash.
-- [ ] GDT & TSS setup with a dedicated double-fault interrupt stack.
-- [ ] IDT exception handlers for breakpoints, page faults, and general protection faults.
-
-### 5. Memory Management & Modern Interrupts
-- [ ] Physical frame allocator parsing the UEFI memory map.
-- [ ] Active 4-level paging manager (higher-half mapping).
-- [ ] Kernel heap allocator enabling Rust's `alloc` crate (`Vec`, `String`, `Box`).
-- [ ] Mask legacy 8259 PIC; configure Local APIC and APIC Timer via ACPI.
+### 4. Phase 3: Millelith Shell & Core Utilities
+- [ ] Interactive REPL with syntax parsing and AST generation.
+- [ ] Process pipeline execution using `fork()`, `execve()`, and `pipe()`.
+- [ ] File redirection (`<`, `>`, `>>`).
+- [ ] Memory-safe Unix core utilities (`ls`, `cat`, `ps`, `kill`, `uname`).
 
 ---
 
@@ -109,12 +108,10 @@ crates/
 ## Toolchain & Requirements
 
 ### Host Dependencies
-- **Rust Nightly:** `rustup default nightly`
-- **Rust Targets:**
+- **Rust (2024 Edition):** `rustup default nightly` (or stable 1.85+)
+- **Rust Target:**
   ```sh
   rustup target add x86_64-unknown-uefi
-  rustup target add x86_64-unknown-none
-  rustup component add rust-src llvm-tools-preview
   ```
 - **QEMU:** `brew install qemu` (macOS) or `sudo apt install qemu-system-x86` (Linux)
 
@@ -122,8 +119,8 @@ crates/
 
 ## References
 
-- [Philipp Oppermann's Writing an OS in Rust](https://os.phil-opp.com/)
 - [UEFI Specification 2.10](https://uefi.org/specifications)
+- [The Linux/x86 Boot Protocol](https://docs.kernel.org/arch/x86/boot.html)
 - [OSDev Wiki: UEFI](https://wiki.osdev.org/UEFI)
+- [The Linux Programming Interface (Michael Kerrisk)](https://man7.org/tlpi/)
 - [OSDev Wiki: APIC](https://wiki.osdev.org/APIC)
-

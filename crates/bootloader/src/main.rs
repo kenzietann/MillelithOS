@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
+mod uefi;
+mod graphics;
 
+use uefi::*;
+use graphics::*;
 use core::panic::PanicInfo;
 
 // Halt the CPU in an infinite spin loop on unrecoverable panics
@@ -11,56 +15,6 @@ fn panic(_info: &PanicInfo) -> ! {
     }
 }
 
-// Opaque pointer to firmware-managed objects
-pub type EfiHandle = *mut core::ffi::c_void;
-
-// Native status code integer (UINTN in 64-bit UEFI)
-pub type EfiStatus = usize;
-
-// Standard success status code
-pub const EFI_SUCCESS: EfiStatus = 0;
-
-// Standard 24-byte header at the start of all UEFI tables
-#[repr(C)]
-pub struct EfiTableHeader {
-    pub signature: u64,
-    pub revision: u32,
-    pub header_size: u32,
-    pub crc32: u32,
-    pub reserved: u32,
-}
-
-// Protocol interface for printing text to the firmware screen console
-#[repr(C)]
-pub struct EfiSimpleTextOutputProtocol {
-    pub reset: unsafe extern "efiapi" fn(
-        this: *mut EfiSimpleTextOutputProtocol,
-        extended_verification: u8,
-    ) -> EfiStatus,
-    pub output_string: unsafe extern "efiapi" fn(
-        this: *mut EfiSimpleTextOutputProtocol,
-        string: *const u16,
-    ) -> EfiStatus,
-}
-
-// Master table passed by UEFI firmware to the bootloader entry point
-#[repr(C)]
-pub struct EfiSystemTable {
-    pub hdr: EfiTableHeader,
-    pub firmware_vendor: *const u16,
-    pub firmware_revision: u32,
-    pub console_in_handle: EfiHandle,
-    pub con_in: *mut core::ffi::c_void,
-    pub console_out_handle: EfiHandle,
-    pub con_out: *mut EfiSimpleTextOutputProtocol,
-    pub standard_error_handle: EfiHandle,
-    pub std_err: *mut EfiSimpleTextOutputProtocol,
-    pub runtime_services: *mut core::ffi::c_void,
-    pub boot_services: *mut core::ffi::c_void,
-    pub number_of_table_entries: usize,
-    pub configuration_table: *mut core::ffi::c_void,
-}
-
 // Startup message in UTF-16 terminated with a null byte 0
 static MESSAGE: &[u16] = &[
     'H' as u16, 'e' as u16, 'l' as u16, 'l' as u16, 'o' as u16, ' ' as u16,
@@ -69,14 +23,37 @@ static MESSAGE: &[u16] = &[
     'O' as u16, 'S' as u16, '!' as u16, '\r' as u16, '\n' as u16, 0,
 ];
 
+
+
+// UEFI application entry point called by the firmware
 #[unsafe(no_mangle)]
 pub extern "efiapi" fn efi_main(_image_handle: EfiHandle, system_table: *mut EfiSystemTable) -> EfiStatus {
   let con_out: *mut EfiSimpleTextOutputProtocol = unsafe { (*system_table).con_out };
+  let boot_services = unsafe { (*system_table).boot_services };
 
+
+
+  // Locate the Graphics Output Protocol
+  let mut gop_interface: *mut core::ffi::c_void = core::ptr::null_mut();
+  let status = unsafe {
+    ((*boot_services).locate_protocol)(
+      &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID,
+      core::ptr::null_mut(),
+      &mut gop_interface
+    )
+  };
+
+  if status == EFI_SUCCESS && !gop_interface.is_null(){
+    let gop = gop_interface as *mut EfiGraphicsOutputProtocol;
+
+    unsafe { fill_framebuffer(gop, 255, 0, 0) };
+  }
+
+  // Print text message after framebuffer filled.
   unsafe { ((*con_out).output_string)(con_out, MESSAGE.as_ptr()); };
 
   loop {
     core::hint::spin_loop();
   }
-  
+
 }
