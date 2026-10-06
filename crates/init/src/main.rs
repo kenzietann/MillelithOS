@@ -114,7 +114,7 @@ fn setup_signals() {
     print("[OK] POSIX signal handlers installed successfully!\n");
 }
 
-// Spawn the primary user session via process cloning
+// Spawn the primary user session via process cloning and binary execution
 fn spawn_session() {
   print("[*] Spawning primary Millelith session via fork()...\n");
 
@@ -122,15 +122,16 @@ fn spawn_session() {
   if pid < 0 {
     print("[ERROR] Failed to fork session process!\n");
   } else if pid == 0 {
-    // Child process execution path (running in its own address space)
-    let child_pid = getpid();
-    print("\n=======================================================\n");
-    print("  Millelith OS - Primary Session Active!               \n");
-    print("  Spawned Child Process running at PID: ");
-    print_number(child_pid);
-    print("\n=======================================================\n\n");
-    print("[CHILD] Session test complete. Exiting child cleanly...\n");
-    exit(0);
+    // Child process execution path: replace address space with Millelith Shell
+    let shell_path = b"/bin/msh\0";
+    let arguments: [*const u8; 2] = [shell_path.as_ptr(), core::ptr::null()];
+    let environment: [*const u8; 1] = [core::ptr::null()];
+
+    execve(shell_path, &arguments, &environment);
+
+    // If execve returns, the binary execution failed
+    print("[ERROR] Failed to execute /bin/msh!\n");
+    exit(1);
   } else {
     // Parent process (PID 1) execution path
     print("[*] Spawned child process with PID: ");

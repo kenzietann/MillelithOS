@@ -11,6 +11,7 @@ pub const SYS_RT_SIGACTION: usize = 13;
 pub const SYS_GETPID: usize = 39;
 pub const SYS_FORK: usize = 57;
 pub const SYS_EXIT: usize = 60;
+pub const SYS_EXECVE: usize = 59;
 
 // Standard POSIX signal numbers
 pub const SIGINT: usize = 2;
@@ -286,5 +287,17 @@ pub fn exit(status: usize) -> ! {
 
   loop {
     pause();
+  }
+}
+
+// Replace current process image with a new executable program
+pub fn execve(path: &[u8], arguments: &[*const u8], environment: &[*const u8]) -> isize {
+  unsafe {
+    syscall3(
+      SYS_EXECVE,
+      path.as_ptr() as usize,
+      arguments.as_ptr() as usize,
+      environment.as_ptr() as usize
+    )
   }
 }
