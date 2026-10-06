@@ -129,7 +129,11 @@ pub struct EfiBootServices {
     pub install_protocol_interface: usize,
     pub reinstall_protocol_interface: usize,
     pub uninstall_protocol_interface: usize,
-    pub handle_protocol: usize,
+    pub handle_protocol: unsafe extern "efiapi" fn(
+      handle: EfiHandle,
+      protocol: *const EfiGuid,
+      interface: *mut *mut core::ffi::c_void,
+    ) -> EfiStatus,
     pub reserved: usize,
     pub register_protocol_notify: usize,
     pub locate_handle: usize,
@@ -260,3 +264,29 @@ pub struct EfiSimpleFileSystemProtocol {
 }
 
 pub const EFI_FILE_MODE_READ: u64 = 0x0000000000000001;
+
+// GUID for UEFI Loaded Image Protocol: 5b1b31a1-9562-11d2-8e3f-00a0c969723b
+pub const EFI_LOADED_IMAGE_PROTOCOL_GUID: EfiGuid = EfiGuid {
+    data1: 0x5b1b31a1,
+    data2: 0x9562,
+    data3: 0x11d2,
+    data4: [0x8e, 0x3f, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b],
+};
+
+// Layout for an executing UEFI binary image interface
+#[repr(C)]
+pub struct LoadedImageConfig {
+    pub revision: u32,
+    pub parent: EfiHandle,
+    pub system_table: *mut EfiSystemTable,
+    pub device: EfiHandle,
+    pub file_path: *mut core::ffi::c_void,
+    pub reserved: *mut core::ffi::c_void,
+    pub options_bytes: u32,
+    pub options_ptr: *mut u16,
+    pub image_base: *mut core::ffi::c_void,
+    pub image_size: u64,
+    pub image_code_type: u32,
+    pub image_data_type: u32,
+    pub unload_handler: usize,
+}

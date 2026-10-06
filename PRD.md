@@ -70,8 +70,8 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 
 ### Phase 2: Millelith Init (PID 1 System in Rust)
 *The critical heart of the OS userspace.*
-- [ ] Implement freestanding Rust PID 1 binary (`/sbin/init`).
-- [ ] Mount fundamental virtual filesystems: `/proc` (procfs), `/sys` (sysfs), `/dev` (devtmpfs).
+- [x] Implement freestanding Rust PID 1 binary (`/sbin/init`).
+- [x] Mount fundamental virtual filesystems: `/proc` (procfs), `/sys` (sysfs), `/dev` (devtmpfs).
 - [ ] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
 - [ ] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
 - [ ] Implement orphan process reaping (preventing zombie processes).

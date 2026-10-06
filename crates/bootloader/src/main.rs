@@ -28,7 +28,18 @@ static MESSAGE: &[u16] = &[
     'O' as u16, 'S' as u16, '!' as u16, '\r' as u16, '\n' as u16, 0,
 ];
 
-
+// Kernel boot options telling Linux to load our initrd
+static CMDLINE: &[u16] = &[
+    'i' as u16, 'n' as u16, 'i' as u16, 't' as u16, 'r' as u16, 'd' as u16, '=' as u16,
+    '\\' as u16, 'i' as u16, 'n' as u16, 'i' as u16, 't' as u16, 'r' as u16, 'd' as u16,
+    ' ' as u16,
+    'c' as u16, 'o' as u16, 'n' as u16, 's' as u16, 'o' as u16, 'l' as u16, 'e' as u16, '=' as u16,
+    't' as u16, 't' as u16, 'y' as u16, '0' as u16,
+    ' ' as u16,
+    'e' as u16, 'a' as u16, 'r' as u16, 'l' as u16, 'y' as u16, 'p' as u16, 'r' as u16, 'i' as u16, 'n' as u16, 't' as u16, 'k' as u16, '=' as u16,
+    'e' as u16, 'f' as u16, 'i' as u16,
+    0,
+];
 
 // UEFI application entry point called by the firmware
 #[unsafe(no_mangle)]
@@ -124,6 +135,45 @@ pub extern "efiapi" fn efi_main(_image_handle: EfiHandle, system_table: *mut Efi
                   print_str(con_out, "[OK] Kernel image loaded! Handle at: ");
                   print_ptr(con_out, kernel_image_handle);
                   print_str(con_out, "\n[*] Starting Linux Kernel...\n");
+
+                  // Attach kernel command-line options via loaded image protocol
+                  let mut image_proto: *mut core::ffi::c_void = core::ptr::null_mut();
+                  let proto_status = unsafe {
+                    ((*boot_services).handle_protocol)(
+                      kernel_image_handle,
+                      &EFI_LOADED_IMAGE_PROTOCOL_GUID,
+                      &mut image_proto
+                    )
+                  };
+
+                  if proto_status == EFI_SUCCESS && !image_proto.is_null() {
+                    let loaded = image_proto as *mut LoadedImageConfig;
+
+                    // Query bootloader's own image to borrow its valid disk device handle
+                    let mut bootloader_proto: *mut core::ffi::c_void = core::ptr::null_mut();
+                    let bl_status = unsafe {
+                      ((*boot_services).handle_protocol)(
+                        _image_handle,
+                        &EFI_LOADED_IMAGE_PROTOCOL_GUID,
+                        &mut bootloader_proto
+                      )
+                    };
+
+                    if bl_status == EFI_SUCCESS && !bootloader_proto.is_null() {
+                      let bootloader_loaded = bootloader_proto as *mut LoadedImageConfig;
+                      unsafe {
+                        (*loaded).device = (*bootloader_loaded).device;
+                      }
+                      print_str(con_out, "[OK] Attached boot disk device handle to kernel!\n");
+                    }
+
+                    unsafe {
+                      (*loaded).options_bytes = (CMDLINE.len() * 2) as u32;
+                      (*loaded).options_ptr = CMDLINE.as_ptr() as *mut u16;
+                    }
+                    print_str(con_out, "[OK] Kernel command-line parameters attached!\n");
+                    print_str(con_out, "[*] Starting Linux Kernel...\n");
+                  }
 
                   let mut exit_data_size: usize = 0;
                   let mut exit_data: *mut u16 = core::ptr::null_mut();
