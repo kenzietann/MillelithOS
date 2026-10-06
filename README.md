@@ -91,17 +91,21 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Spawn the primary Millelith shell session.
 
 ### 4. Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
-- [ ] Interactive REPL with prompt rendering and line editing.
-- [ ] Command string lexer and Abstract Syntax Tree (AST) parser.
+- [x] Interactive REPL with prompt rendering and line editing.
+- [x] Command string lexer (tokenizing, quotes stripping, and operator recognition).
+- [ ] Abstract Syntax Tree (AST) parser.
+- [ ] Built-in commands (`cd`, `pwd`, `exit`, `help`, `export`).
 - [ ] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
 - [ ] File redirection (`<`, `>`, `>>`).
-- [ ] Built-in commands (`cd`, `exit`, `help`, `export`).
 
-### 5. Phase 4: Millelith Core Utilities (Rust Coreutils)
+### 5. Phase 4: Millelith Core Utilities & Handcrafted Network Stack
 - [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
+- [ ] Handcrafted Layer 2 (Data Link): `arp` - Raw Ethernet frame transceiver and ARP cache resolver.
+- [ ] Handcrafted Layer 3 (Network): `ping` - Raw ICMP packet crafting and RFC 1071 IP checksum calculation via `AF_PACKET`.
+- [ ] Handcrafted Layer 7 (Application): `curl` & DNS - RFC 1035 UDP binary DNS packet resolver and wire-protocol HTTP/1.1 client.
 
 ### 6. Phase 5: Distribution Packaging & Physical PC Deployment
 - [ ] Construct standalone root filesystem (`rootfs`) image.

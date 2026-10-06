@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): Millelith OS (Unix Edition)
 
 **Project Name:** Millelith OS  
-**Status:** Phase 1 Bootloader Development  
+**Status:** Phase 3 Millelith Shell Development
 **Author & Lead Developer:** Kenzie Tann  
 **Core Technologies:** Rust (`crates/bootloader`, `crates/init`, `crates/shell`), Linux Kernel (`vmlinuz`), POSIX/Unix Architecture  
 **Core Purpose:** An operating system engineered from scratch to master Computer Science in a single, comprehensive project. Built to be a daily-drivable, physical-PC-ready Unix operating system combining a **custom bare-metal Rust UEFI bootloader**, the **Linux kernel as the hardware engine**, and a **100% custom Rust userspace and init system**.
@@ -79,18 +79,21 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 
 ### Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
 *Mastering parsing, process control, and IPC.*
-- [ ] Interactive REPL with prompt rendering and line editing.
-- [ ] Command string lexer and Abstract Syntax Tree (AST) parser.
+- [x] Interactive REPL with prompt rendering and line editing.
+- [x] Command string lexer and Abstract Syntax Tree (AST) parser.
 - [ ] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
 - [ ] File redirection (`<`, `>`, `>>`).
 - [ ] Built-in commands (`cd`, `exit`, `help`, `export`).
 
-### Phase 4: Millelith Core Utilities (Rust Coreutils)
-*Replacing GNU/BusyBox with memory-safe Rust implementations.*
+### Phase 4: Millelith Core Utilities & Handcrafted Network Stack
+*Replacing GNU/BusyBox with memory-safe Rust implementations and raw wire networking.*
 - [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
+- [ ] **Handcrafted Layer 2 (Data Link):** `arp` - Raw Ethernet frame transceiver and ARP cache resolver.
+- [ ] **Handcrafted Layer 3 (Network):** `ping` - Raw ICMP packet crafting and RFC 1071 IP checksum calculation via `AF_PACKET`.
+- [ ] **Handcrafted Layer 7 (Application):** `curl` & DNS - RFC 1035 UDP binary DNS packet resolver and wire-protocol HTTP/1.1 client.
 
 ### Phase 5: Distribution Packaging & Physical PC Deployment
 *Creating bootable media for physical computers.*
@@ -111,6 +114,8 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
    - Virtual filesystems (`/proc`, `/sys`, `/dev`).
 3. **Compilers & Interpreters:**
    - Command grammar, lexing, parsing, and AST construction in the shell.
-4. **Concurrency & Networking:**
-   - Multi-process communication, file descriptors, Unix domain sockets, and network sockets.
+4. **Concurrency & Handcrafted Networking (Layer 2, 3, & 7):**
+   - **Layer 2 (Data Link):** Raw packet sockets (`AF_PACKET`), Ethernet framing, MAC addressing, and ARP protocol state machine.
+   - **Layer 3 (Network):** IPv4 packet structure, ICMP Ping echo crafting, and RFC 1071 one's complement mathematical checksum algorithm.
+   - **Layer 7 (Application):** RFC 1035 binary DNS query serialization, HTTP/1.1 wire protocol streaming, and BSD Socket lifecycle.
 

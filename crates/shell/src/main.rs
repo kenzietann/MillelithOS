@@ -1,4 +1,7 @@
+mod lexers;
+
 use std::io::{self, Write};
+use lexers::{Lexer, Token};
 
 // ANSI color escape codes for terminal styling 
 const COLOR_RESET: &str = "\x1B[0m";
@@ -58,17 +61,36 @@ fn main() {
           continue;
         }
 
-        // Split command line into command name and argument list
-        let mut parts = command_line.split_whitespace();
-        let command_name = match parts.next() {
-          Some(name) => name,
-          None => continue,
+        // Tokenize command line string using my custom Lexer
+        let tokens = match Lexer::tokenize(command_line) {
+          Ok(parsed_tokens) => parsed_tokens,
+          Err(error_message) => {
+            println!("{COLOR_RED}msh syntax error: {error_message}{COLOR_RESET}");
+            continue;
+          }
         };
 
-        let arguments: Vec<&str> = parts.collect();
+        if tokens.is_empty() {
+          continue;
+        }
+
+        // Extract words (command name and string arguments) from tokens
+        let mut words = Vec::new();
+        for token in tokens {
+          if let Token::Word(word_text) = token {
+            words.push(word_text);
+          }
+        }
+
+        if words.is_empty() {
+          continue;
+        }
+
+        let command_name = &words[0];
+        let arguments = &words[1..];
 
         // Dispatch built-in commands
-        match command_name {
+        match command_name.as_str() {
           "exit" => {
             println!("[msh] Exiting Millelith Shell...");
             break;
