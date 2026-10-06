@@ -22,6 +22,32 @@ fn print(message: &str) {
     write(1, message.as_bytes());
 }
 
+// Configure standard input, output, and error file descriptors
+fn setup_stdio(){
+  print("[*] Configuring standard I/O file descriptors (0, 1, 2)...\n");
+
+  // Open /dev/console in read-write mode
+  let console_fd = open(b"/dev/console\0", OPEN_FLAG_READ_WRITE);
+  if console_fd < 0 {
+    print("[WARN] Failed to open /dev/console\n");
+    return;
+  }
+
+  let fd = console_fd as usize;
+
+  // Ensure stdin (0), stdout (1), and stderr (2) point to /dev/console
+  dup2(fd, 0);
+  dup2(fd, 1);
+  dup2(fd, 2);
+
+  // Close original descriptor if it is above 2
+  if fd > 2 {
+    close(fd);
+  }
+
+  print("[OK] Standard I/O (stdin=0, stdout=1, stderr=2) configured to /dev/console!\n");
+}
+
 // Userspace Ring 3 entry point called by the Linux kernel for PID 1
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
@@ -63,7 +89,8 @@ pub extern "C" fn _start() -> ! {
         print("[WARN] Failed to mount /dev\n");
     }
 
-    print("\n[OK] Core virtual filesystems initialized.\n");
+    setup_stdio();
+    print("\n[OK] Core virtual filesystems and stdio initialized.\n");
     print("[*] PID 1 entering supervisory loop...\n");
 
     // Infinite supervisory loop to prevent PID 1 from exiting

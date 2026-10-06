@@ -85,7 +85,7 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 ### 3. Phase 2: Millelith Init (PID 1 in Rust)
 - [x] Implement freestanding Rust PID 1 binary (`/sbin/init`).
 - [x] Mount fundamental virtual filesystems: `/proc` (procfs), `/sys` (sysfs), `/dev` (devtmpfs).
-- [ ] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
+- [x] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
 - [ ] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
 - [ ] Implement orphan process reaping (preventing zombie processes).
 - [ ] Spawn the primary Millelith login / shell session.

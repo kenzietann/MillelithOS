@@ -3,6 +3,12 @@ pub const SYS_WRITE: usize = 1;
 pub const SYS_PAUSE: usize = 34;
 pub const SYS_MKDIR: usize = 83;
 pub const SYS_MOUNT: usize = 165;
+pub const SYS_OPEN: usize = 2;
+pub const SYS_CLOSE: usize = 3;
+pub const SYS_DUP2: usize = 33;
+
+// File status flag for read-write (0-RDWR)
+pub const OPEN_FLAG_READ_WRITE: usize = 2;
 
 // Invoke 0-argument Linux syscall
 #[inline(always)]
@@ -17,6 +23,23 @@ pub unsafe fn syscall0(number: usize) -> isize {
       lateout("r11") _,
       options(nostack)
     );
+  }
+  ret
+}
+
+#[inline(always)]
+pub unsafe fn syscall1(number: usize, arg1: usize) -> isize {
+  let ret: isize;
+  unsafe {
+    core::arch::asm!(
+      "syscall",
+      in("rax") number,
+      in("rdi") arg1,
+      lateout("rax") ret,
+      lateout("rcx") _,
+      lateout("r11") _,
+      options(nostack)
+    )
   }
   ret
 }
@@ -127,4 +150,32 @@ pub fn mount(source: &[u8], target: &[u8], filesystem_type: &[u8], flags: usize)
 // Pause process execution until a signal is received
 pub fn pause() -> isize {
   unsafe { syscall0(SYS_PAUSE) }
+}
+
+// Open a file or device node with specified access flags
+pub fn open(path: &[u8], flags: usize) -> isize {
+  unsafe {
+    syscall3(
+      SYS_OPEN,
+      path.as_ptr() as usize,
+      flags,
+      0
+    )
+  }
+}
+
+// Close an active file descriptor
+pub fn close(file_descriptor: usize) -> isize {
+  unsafe { syscall1(SYS_CLOSE, file_descriptor) }
+}
+
+// Duplicate a file descriptor onto a specific target slot
+pub fn dup2(old_file_descriptor: usize, new_file_descriptor: usize) -> isize {
+  unsafe {
+    syscall2(
+      SYS_DUP2,
+      old_file_descriptor,
+      new_file_descriptor
+    )
+  }
 }
