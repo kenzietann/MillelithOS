@@ -88,7 +88,7 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
 - [x] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
 - [x] Implement orphan process reaping (preventing zombie processes).
-- [ ] Spawn the primary Millelith login / shell session.
+- [x] Spawn the primary Millelith shell session.
 
 ### 4. Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
 - [ ] Interactive REPL with prompt rendering and line editing.

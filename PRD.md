@@ -75,7 +75,7 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
 - [x] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
 - [x] Implement orphan process reaping (preventing zombie processes).
-- [ ] Spawn the primary Millelith login / shell session.
+- [x] Spawn the primary Millelith shell session.
 
 ### Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
 *Mastering parsing, process control, and IPC.*

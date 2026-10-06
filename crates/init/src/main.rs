@@ -25,26 +25,22 @@ fn print(message: &str) {
 // Print an unsigned integer to standard output witout heap allocations
 fn print_number(mut value: usize) {
   if value == 0 {
-    print("0");
+    write(1, b"0");
     return;
   } 
 
   let mut buffer = [0u8; 20];
-  let mut index = 0;
+  let mut index = buffer.len();
 
   // Extract digits in reverse order
   while value > 0 {
+    index -= 1;
     buffer[index] = b'0' + (value % 10) as u8;
     value /= 10;
-    index += 1
   }
 
-  // Reverse buffer to obtain correct digit order
-  buffer[..index].reverse();
-
-  if let Ok(string_slice) = core::str::from_utf8(&buffer[..index]) {
-    print(string_slice);
-  }
+  // Write ASCII digit slice directly to stdout
+  write(1, &buffer[index..]);
 }
 
 // Reap all terminated child processes to prevent zombie accumulation
@@ -118,6 +114,31 @@ fn setup_signals() {
     print("[OK] POSIX signal handlers installed successfully!\n");
 }
 
+// Spawn the primary user session via process cloning
+fn spawn_session() {
+  print("[*] Spawning primary Millelith session via fork()...\n");
+
+  let pid = fork();
+  if pid < 0 {
+    print("[ERROR] Failed to fork session process!\n");
+  } else if pid == 0 {
+    // Child process execution path (running in its own address space)
+    let child_pid = getpid();
+    print("\n=======================================================\n");
+    print("  Millelith OS - Primary Session Active!               \n");
+    print("  Spawned Child Process running at PID: ");
+    print_number(child_pid);
+    print("\n=======================================================\n\n");
+    print("[CHILD] Session test complete. Exiting child cleanly...\n");
+    exit(0);
+  } else {
+    // Parent process (PID 1) execution path
+    print("[*] Spawned child process with PID: ");
+    print_number(pid as usize);
+    print("!\n");
+  }
+}
+
 // Userspace Ring 3 entry point called by the Linux kernel for PID 1
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
@@ -163,6 +184,10 @@ pub extern "C" fn _start() -> ! {
     setup_signals();
 
     print("\n[OK] Core virtual filesystems and stdio initialized.\n");
+
+    // Spawn the primary user session
+    spawn_session();
+
     print("[*] PID 1 entering supervisory loop...\n");
 
     // Infinite supervisory loop to prevent PID 1 from exiting
