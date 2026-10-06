@@ -24,6 +24,8 @@ fn handle_help() {
     println!("  help     - Show this help reference");
     println!("  clear    - Clear terminal screen");
     println!("  echo     - Print text arguments to console");
+    println!("  pwd      - Print current working directory");
+    println!("  cd       - Change working directory");
     println!("  exit     - Terminate shell session");
 }
 
@@ -31,6 +33,28 @@ fn handle_help() {
 fn handle_clear() {
   print!("\x1B[2J\x1B[H");
   let _ = io::stdout().flush();
+}
+
+// Print the current working directory to console
+fn handle_pwd() {
+  match std::env::current_dir() {
+    Ok(path) => println!("{}", path.display()),
+    Err(error) => eprintln!("{COLOR_RED}msh: pwd: {error} {COLOR_RESET}"),
+  }
+}
+
+// Change current working directory of the shell process
+fn handle_cd(arguments: &[String]) {
+  // Default to root directory "/" if no argument provided
+  let target_directory = if arguments.is_empty() {
+    "/"
+  } else {
+    arguments[0].as_str()
+  };
+
+  if let Err(error) = std::env::set_current_dir(target_directory) {
+    eprintln!("{COLOR_RED}msh: cd: {target_directory}: {error}{COLOR_RESET}");
+  }
 }
 
 // Primary entry point for the interactive shell session
@@ -42,8 +66,13 @@ fn main() {
 
   // Main Read-Eval-Print Loop (REPL)
   loop {
-    // Render shell prompt
-    print!("{COLOR_BOLD_GREEN}millelith # {COLOR_RESET}");
+    // Query current working directory for dynamic prompt rendering
+    let current_directory = std::env::current_dir()
+      .map(|path| path.display().to_string())
+      .unwrap_or_else(|_| String::from("?"));
+
+    // Render dynamic shell prompt (e.g. millelith (/proc) # )
+    print!("{COLOR_BOLD_GREEN}millelith ({COLOR_BOLD_CYAN}{current_directory}){COLOR_BOLD_GREEN} # {COLOR_RESET}");
     let _ = io::stdout().flush();
 
     input_buffer.clear();
@@ -100,6 +129,8 @@ fn main() {
           "echo" => {
             println!("{}", arguments.join(" "));
           }
+          "pwd" => handle_pwd(),
+          "cd" => handle_cd(arguments),
           unknown_commands => {
             println!("{COLOR_RED}msh: command not found: {unknown_commands}{COLOR_RESET}");
           }
