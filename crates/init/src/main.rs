@@ -22,6 +22,49 @@ fn print(message: &str) {
     write(1, message.as_bytes());
 }
 
+// Print an unsigned integer to standard output witout heap allocations
+fn print_number(mut value: usize) {
+  if value == 0 {
+    print("0");
+    return;
+  } 
+
+  let mut buffer = [0u8; 20];
+  let mut index = 0;
+
+  // Extract digits in reverse order
+  while value > 0 {
+    buffer[index] = b'0' + (value % 10) as u8;
+    value /= 10;
+    index += 1
+  }
+
+  // Reverse buffer to obtain correct digit order
+  buffer[..index].reverse();
+
+  if let Ok(string_slice) = core::str::from_utf8(&buffer[..index]) {
+    print(string_slice);
+  }
+}
+
+// Reap all terminated child processes to prevent zombie accumulation
+fn reap_zombies() {
+  let mut exit_status: u32 = 0;
+
+  // Loop through all pending dead children
+  loop {
+    let reaped_pid = wait_non_blocking(&mut exit_status);
+    if reaped_pid <= 0 {
+      // No more zombies pending in kernel table
+      break;
+    }
+
+    print("[*] Reaped terminated zombie process (PID: ");
+    print_number(reaped_pid as usize);
+    print(")\n");
+  }
+}
+
 // Configure standard input, output, and error file descriptors
 fn setup_stdio(){
   print("[*] Configuring standard I/O file descriptors (0, 1, 2)...\n");
@@ -46,6 +89,33 @@ fn setup_stdio(){
   }
 
   print("[OK] Standard I/O (stdin=0, stdout=1, stderr=2) configured to /dev/console!\n");
+}
+
+// Asynchronous signal handler dispatched by the Linux kernel
+extern "C" fn handle_signal(signal_number: i32) {
+  if signal_number == SIGINT as i32 {
+      print("\n[*] Received SIGINT (Ctrl+C ignored by PID 1)\n");
+  } else if signal_number == SIGTERM as i32 {
+      print("\n[*] Received SIGTERM (Shutdown request received)\n");
+  }
+}
+
+// Configure POSIX signal handlers to protect PID 1 and reap children
+fn setup_signals() {
+    print("[*] Installing POSIX signal handlers (SIGCHLD, SIGINT, SIGTERM)...\n");
+
+    let action = SigAction {
+      handler: handle_signal as *const () as usize,
+      flags: SA_RESTORER | SA_RESTART,
+      restorer: signal_restorer as *const () as usize,
+      mask: 0,
+    };
+
+    sigaction(SIGCHILD, &action);
+    sigaction(SIGINT, &action);
+    sigaction(SIGTERM, &action);
+
+    print("[OK] POSIX signal handlers installed successfully!\n");
 }
 
 // Userspace Ring 3 entry point called by the Linux kernel for PID 1
@@ -90,11 +160,14 @@ pub extern "C" fn _start() -> ! {
     }
 
     setup_stdio();
+    setup_signals();
+
     print("\n[OK] Core virtual filesystems and stdio initialized.\n");
     print("[*] PID 1 entering supervisory loop...\n");
 
     // Infinite supervisory loop to prevent PID 1 from exiting
     loop {
+        reap_zombies();
         pause();
     }
 }

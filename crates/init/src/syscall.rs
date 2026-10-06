@@ -6,9 +6,41 @@ pub const SYS_MOUNT: usize = 165;
 pub const SYS_OPEN: usize = 2;
 pub const SYS_CLOSE: usize = 3;
 pub const SYS_DUP2: usize = 33;
+pub const SYS_WAIT4: usize = 61;
+pub const SYS_RT_SIGACTION: usize = 13;
+
+// Standard POSIX signal numbers
+pub const SIGINT: usize = 2;
+pub const SIGTERM: usize = 15;
+pub const SIGCHILD: usize = 17;
+
+// Flags for rt_sigaction
+pub const SA_RESTORER: usize = 0x0400_0000;
+pub const SA_RESTART: usize = 0x1000_0000;
+
+// Flag option to return immediately if no child has exited (WHOHANG)
+pub const WAIT_FLAG_NO_HANG: usize = 1;
 
 // File status flag for read-write (0-RDWR)
 pub const OPEN_FLAG_READ_WRITE: usize = 2;
+
+// POSIX signal action configuration struct
+#[repr(C)]
+pub struct SigAction {
+  pub handler: usize,
+  pub flags: usize,
+  pub restorer: usize,
+  pub mask: u64
+}
+
+// Low-evel signal trampoline that calls SYS_RT_SIGRETURN (syscall 15)
+#[unsafe(naked)]
+pub unsafe extern "C" fn signal_restorer() {
+  core::arch::naked_asm!(
+    "mov rax, 15",
+    "syscall"
+  );
+}
 
 // Invoke 0-argument Linux syscall
 #[inline(always)]
@@ -72,6 +104,33 @@ pub unsafe fn syscall3(number: usize, arg1: usize, arg2: usize, arg3: usize) -> 
       in("rdi") arg1,
       in("rsi") arg2,
       in("rdx") arg3,
+      lateout("rax") ret,
+      lateout("rcx") _,
+      lateout("r11") _,
+      options(nostack)
+    );
+  }
+  ret
+}
+
+// Invoke 4-argument linux syscall
+#[inline(always)]
+pub unsafe fn syscall4(
+  number: usize,
+  arg1: usize,
+  arg2: usize,
+  arg3: usize,
+  arg4: usize
+) -> isize {
+  let ret: isize;
+  unsafe {
+    core::arch::asm!(
+      "syscall",
+      in("rax") number,
+      in("rdi") arg1,
+      in("rsi") arg2,
+      in("rdx") arg3,
+      in("r10") arg4,
       lateout("rax") ret,
       lateout("rcx") _,
       lateout("r11") _,
@@ -176,6 +235,32 @@ pub fn dup2(old_file_descriptor: usize, new_file_descriptor: usize) -> isize {
       SYS_DUP2,
       old_file_descriptor,
       new_file_descriptor
+    )
+  }
+}
+
+// Wait for process status change without blocking
+pub fn wait_non_blocking(status_ptr: *mut u32) -> isize {
+  unsafe {
+    syscall4(
+      SYS_WAIT4,
+      !0, // -1 as usize
+      status_ptr as usize,
+      WAIT_FLAG_NO_HANG,
+      0
+    )
+  }
+}
+
+// Register a POSIX signal handler with the Linux Kernel
+pub fn sigaction(signal_number: usize, action: &SigAction) -> isize {
+  unsafe {
+    syscall4(
+      SYS_RT_SIGACTION,
+      signal_number,
+      action as *const SigAction as usize,
+      0,
+      core::mem::size_of::<u64>()
     )
   }
 }

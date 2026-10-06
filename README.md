@@ -86,8 +86,8 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Implement freestanding Rust PID 1 binary (`/sbin/init`).
 - [x] Mount fundamental virtual filesystems: `/proc` (procfs), `/sys` (sysfs), `/dev` (devtmpfs).
 - [x] Configure standard I/O file descriptors (`stdin=0`, `stdout=1`, `stderr=2`).
-- [ ] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
-- [ ] Implement orphan process reaping (preventing zombie processes).
+- [x] Implement POSIX signal handling (`SIGCHLD`, `SIGINT`, `SIGTERM`).
+- [x] Implement orphan process reaping (preventing zombie processes).
 - [ ] Spawn the primary Millelith login / shell session.
 
 ### 4. Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
