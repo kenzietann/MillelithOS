@@ -27,6 +27,7 @@ fn handle_help() {
     println!("  pwd      - Print current working directory");
     println!("  cd       - Change working directory");
     println!("  exit     - Terminate shell session");
+    println!("  export   - Set or display environment variables (export KEY=VALUE)");
 }
 
 // Clear terminal display using standard ANSI escape sequence
@@ -54,6 +55,26 @@ fn handle_cd(arguments: &[String]) {
 
   if let Err(error) = std::env::set_current_dir(target_directory) {
     eprintln!("{COLOR_RED}msh: cd: {target_directory}: {error}{COLOR_RESET}");
+  }
+}
+
+// Set or display environment variables
+fn handle_export(arguments: &[String]) {
+  if arguments.is_empty() {
+    // Display all active environment variables
+    for (key, value) in std::env::vars() {
+      println!("{key}={value}");
+    }
+    return;
+  }
+
+  // Process export arguments formatted as KEY=VALUE
+  for argument in arguments {
+    if let Some((key, value)) = argument.split_once('=') {
+      unsafe { std::env::set_var(key, value) };
+    } else {
+      eprintln!("{COLOR_RED}msh: export: invalid format '{argument}' (expected KEY=VALUE){COLOR_RESET}")
+    }
   }
 }
 
@@ -131,6 +152,7 @@ fn main() {
           }
           "pwd" => handle_pwd(),
           "cd" => handle_cd(arguments),
+          "export" => handle_export(arguments),
           unknown_commands => {
             println!("{COLOR_RED}msh: command not found: {unknown_commands}{COLOR_RESET}");
           }
