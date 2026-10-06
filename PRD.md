@@ -80,7 +80,7 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 ### Phase 3: Millelith Shell (Interactive Unix Shell in Rust)
 - [x] Interactive REPL with prompt rendering and line editing.
 - [x] Command string lexer (tokenizing, quotes stripping, and operator recognition).
-- [ ] Abstract Syntax Tree (AST) parser.
+- [x] Abstract Syntax Tree (AST) parser.
 - [x] Built-in commands (`cd`, `pwd`, `exit`, `help`, `export`).
 - [x] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.

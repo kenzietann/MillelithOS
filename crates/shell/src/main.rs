@@ -1,7 +1,9 @@
 mod lexers;
 mod commands;
+mod ast;
 
 use lexers::{Lexer, Token};
+use ast::Parser;
 use std::io::{self, Write};
 use commands::*;
 
@@ -50,39 +52,51 @@ fn main() {
           continue;
         }
 
-        // Extract words (command name and string arguments) from tokens
-        let mut words = Vec::new();
-        for token in tokens {
-          if let Token::Word(word_text) = token {
-            words.push(word_text);
+        // Parse token stream into an Abstract Syntax Tree pipeline
+        let pipeline = match Parser::parse(&tokens) {
+          Ok(parsed_pipeline) => parsed_pipeline,
+          Err(error_message) => {
+            println!("{COLOR_RED}msh syntax error: {error_message}{COLOR_RESET}");
+            continue;
           }
-        }
+        };
 
-        if words.is_empty() {
+        if pipeline.commands.is_empty() {
           continue;
         }
 
-        let command_name = &words[0];
-        let arguments = &words[1..];
+        // For single commands without pipeline, dispatch directly
+        if pipeline.commands.len() == 1 {
+          let command = &pipeline.commands[0];
+          let command_name = &command.program;
+          let arguments = &command.arguments;
+          match command_name.as_str() {
+            "exit" => {
+              println!("[msh] Exiting Millelith Shell...");
+              break;
+            }
+            "help" => handle_help(),
+            "clear" => handle_clear(),
+            "echo" => {
+              println!("{}", arguments.join(" "));
+            }
+            "pwd" => handle_pwd(),
+            "cd" => handle_cd(arguments),
+            "export" => handle_export(arguments),
+            external_commands => {
+              execute_external_command(external_commands, arguments);
+            }
+          }
+        } else {
+          // Multiple commands connected by pipes (|)
+          println!("{COLOR_YELLOW}[AST] Pipeline detected with {} commands!{COLOR_RESET}", pipeline.commands.len());
+          for (index, command) in pipeline.commands.iter().enumerate() {
+            println!("  Command {}: {} (args: {:?})", index + 1, command.program, command.arguments);
+          }
+
+        }
 
         // Dispatch built-in commands
-        match command_name.as_str() {
-          "exit" => {
-            println!("[msh] Exiting Millelith Shell...");
-            break;
-          }
-          "help" => handle_help(),
-          "clear" => handle_clear(),
-          "echo" => {
-            println!("{}", arguments.join(" "));
-          }
-          "pwd" => handle_pwd(),
-          "cd" => handle_cd(arguments),
-          "export" => handle_export(arguments),
-          external_commands => {
-            execute_external_command(external_commands, arguments);
-          }
-        }
       }
       Err(error) => {
         eprintln!("{COLOR_RED}[msh ERROR] Failed to read from stdin: {error}{COLOR_RESET}");
