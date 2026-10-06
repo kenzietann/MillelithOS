@@ -82,8 +82,9 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Command string lexer (tokenizing, quotes stripping, and operator recognition).
 - [ ] Abstract Syntax Tree (AST) parser.
 - [x] Built-in commands (`cd`, `pwd`, `exit`, `help`, `export`).
-- [ ] Process execution pipeline using `fork()` and `execve()`.
+- [x] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
+- [ ] File redirection (<, >, >>)
 
 ### Phase 4: Millelith Core Utilities & Handcrafted Network Stack
 *Replacing GNU/BusyBox with memory-safe Rust implementations and raw wire networking.*

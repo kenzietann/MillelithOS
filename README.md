@@ -95,7 +95,7 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Command string lexer (tokenizing, quotes stripping, and operator recognition).
 - [ ] Abstract Syntax Tree (AST) parser.
 - [x] Built-in commands (`cd`, `pwd`, `exit`, `help`, `export`).
-- [ ] Process execution pipeline using `fork()` and `execve()`.
+- [x] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
 - [ ] File redirection (`<`, `>`, `>>`).
 
