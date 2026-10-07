@@ -91,9 +91,24 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
-- [ ] **Handcrafted Layer 2 (Data Link):** `arp` - Raw Ethernet frame transceiver and ARP cache resolver.
-- [ ] **Handcrafted Layer 3 (Network):** `ping` - Raw ICMP packet crafting and RFC 1071 IP checksum calculation via `AF_PACKET`.
-- [ ] **Handcrafted Layer 7 (Application):** `curl` & DNS - RFC 1035 UDP binary DNS packet resolver and wire-protocol HTTP/1.1 client.
+
+**Handcrafted Layer 2 (Data Link):**
+- [ ] Bring the network interface up and discover the local MAC address via `ioctl` (`SIOCSIFFLAGS`, `SIOCGIFHWADDR`).
+- [ ] `arp` - Raw Ethernet frame transceiver (`AF_PACKET`), EtherType handling (`0x0806`), and ARP cache resolver.
+
+**Handcrafted Layer 3 (Network):**
+- [ ] IPv4 header builder and parser with RFC 1071 checksum validation (EtherType `0x0800`; fragmented packets are dropped, no reassembly).
+- [ ] `ping` - Raw ICMP echo request/reply crafting on top of the IPv4 layer.
+
+**Handcrafted Layer 4 (Transport):**
+- [ ] **UDP Engine:** Stateless UDP packet generator and pseudo-header checksum calculator (for DNS queries).
+- [ ] **TCP State Machine:** User-space TCP control block (TCB) tracking connection states (`SYN_SENT`, `ESTABLISHED`, `FIN_WAIT`). Handles 3-way handshakes, sequence/acknowledgment space tracking, window sizing, retransmission timers, and the TCP pseudo-header checksum. The stack uses its own source IP that is not configured in the kernel, so the kernel does not answer with `RST`.
+
+**Handcrafted Layer 7 (Application):**
+- [ ] `dns` - RFC 1035 UDP binary DNS packet resolver (constructing question blocks, parsing resource records).
+- [ ] `curl` - Wire-protocol HTTP/1.1 client running over the user-space TCP engine to parse headers and stream payloads (plain HTTP only, no TLS).
+
+*Suggested build order: Layer 2, Layer 3, UDP, `dns`, TCP, `curl`. QEMU also needs a virtual NIC (`-netdev user` and `-device virtio-net`) instead of `-net none`.*
 
 ### Phase 5: Distribution Packaging & Physical PC Deployment
 *Creating bootable media for physical computers.*
@@ -114,8 +129,9 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
    - Virtual filesystems (`/proc`, `/sys`, `/dev`).
 3. **Compilers & Interpreters:**
    - Command grammar, lexing, parsing, and AST construction in the shell.
-4. **Concurrency & Handcrafted Networking (Layer 2, 3, & 7):**
+4. **Concurrency & Handcrafted Networking (Layer 2, 3, 4, & 7):**
    - **Layer 2 (Data Link):** Raw packet sockets (`AF_PACKET`), Ethernet framing, MAC addressing, and ARP protocol state machine.
    - **Layer 3 (Network):** IPv4 packet structure, ICMP Ping echo crafting, and RFC 1071 one's complement mathematical checksum algorithm.
+   - **Layer 4 (Transport):** UDP datagrams, the TCP state machine (3-way handshake, sequence and acknowledgment numbers, sliding window, retransmission), and pseudo-header checksums.
    - **Layer 7 (Application):** RFC 1035 binary DNS query serialization, HTTP/1.1 wire protocol streaming, and BSD Socket lifecycle.
 
