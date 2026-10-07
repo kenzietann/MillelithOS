@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD): Millelith OS (Unix Edition)
 
 **Project Name:** Millelith OS  
-**Status:** Phase 3 Millelith Shell Development
+**Status:** Phase 4 Millelith Core Utilities & Handcrafted Network Stack
 **Author & Lead Developer:** Kenzie Tann  
 **Core Technologies:** Rust (`crates/bootloader`, `crates/init`, `crates/shell`), Linux Kernel (`vmlinuz`), POSIX/Unix Architecture  
 **Core Purpose:** An operating system engineered from scratch to master Computer Science in a single, comprehensive project. Built to be a daily-drivable, physical-PC-ready Unix operating system combining a **custom bare-metal Rust UEFI bootloader**, the **Linux kernel as the hardware engine**, and a **100% custom Rust userspace and init system**.
