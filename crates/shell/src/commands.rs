@@ -140,6 +140,21 @@ pub fn handle_cat(arguments: &[String], input_redirect: &Option<String>, output_
   }
 }
 
+pub fn handle_ls(arguments: &[String], input_redirect: &Option<String>, output_redirect: &Option<OutputRedirect>){
+  let target_path = match input_redirect {
+    Some(path) => path.as_str(),
+    None => match arguments.first() {
+      Some(path) => path.as_str(),
+      None => {
+        eprintln!("{COLOR_RED}msh: cat: missing path operand{COLOR_RESET}");
+        return;
+      }
+    }
+  };
+}
+
+pub handle 
+
 // Resolve a command name into an executable path (direct path or search in /bin)
 fn resolve_binary_path(command_name: &str) -> String {
   if command_name.starts_with('/') || command_name.starts_with("./") {
