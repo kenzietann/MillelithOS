@@ -203,34 +203,62 @@ pub fn execute_external_command(command_name: &str, arguments: &[String], input_
 
 // Execute multiple commands connected by pipes(|), running all of them concurrently
 pub fn execute_pipeline(commands: &[SimpleCommand]) {
-  // Read end of the previous command's pipe, used as stdin for the next command
   let mut previous_pipe_reader: Option<std::process::ChildStdout> = None;
-
-  // Keep every spawned child so we can wait for all of them at the end
   let mut spawned_children: Vec<std::process::Child> = Vec::new();
+
+  // True when the previous command wrote to a file (>) instead of the pipe
+  let mut previous_output_redirected = false;
 
   for (command_index, command) in commands.iter().enumerate() {
     let is_last_command = command_index == commands.len() - 1;
 
-    // Build the child process command with its arguments
     let binary_path = resolve_binary_path(&command.program);
     let mut child_command = std::process::Command::new(&binary_path);
     child_command.args(&command.arguments);
 
-    // Feed the previous command's output into this command's stdin
-    if let Some(pipe_reader) = previous_pipe_reader.take() {
+    let incoming_pipe = previous_pipe_reader.take();
+
+    // Input source priority: file redirect (<) beats the pipe, like in bash
+    if let Some(input_path) = &command.input_redirect {
+      match open_input_file(input_path) {
+        Ok(input_file) => {
+          child_command.stdin(input_file);
+        }
+        Err(error) => {
+          eprintln!("{COLOR_RED}msh: {input_path}: {error}{COLOR_RESET}");
+          break;
+        }
+      }
+      // The pipe is unused, close it so the previous child gets SIGPIPE
+      drop(incoming_pipe);
+    } else if let Some(pipe_reader) = incoming_pipe {
       child_command.stdin(pipe_reader);
+    } else if previous_output_redirected {
+      // Previous command wrote to a file, so this one reads an empty input
+      child_command.stdin(std::process::Stdio::null());
     }
-    // Capture this command's output into a pipe unless it is the last command
-    if !is_last_command {
+
+    // Output target priority: file redirect (> or >>) beats the pipe
+    let mut output_redirected = false;
+    if let Some(redirect) = &command.output_redirect {
+      match open_output_file(redirect) {
+        Ok(output_file) => {
+          child_command.stdout(output_file);
+          output_redirected = true;
+        }
+        Err(error) => {
+          eprintln!("{COLOR_RED}msh: failed to open redirect file: {error}{COLOR_RESET}");
+          break;
+        }
+      }
+    } else if !is_last_command {
       child_command.stdout(std::process::Stdio::piped());
     }
 
-    // Start the child process without waiting for it to finish
     match child_command.spawn() {
       Ok(mut spawned_child) => {
-        // Keep the read end of the pipe for the next command's stdin
         previous_pipe_reader = spawned_child.stdout.take();
+        previous_output_redirected = output_redirected;
         spawned_children.push(spawned_child);
       }
       Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -248,7 +276,7 @@ pub fn execute_pipeline(commands: &[SimpleCommand]) {
   // Close our copy of the last pipe reader (only set if the loop broke early),
   // so the previous child gets EOF/SIGPIPE instead of hanging
   drop(previous_pipe_reader);
-
+  
   // Wait for every child so none becomes a zombie
   for mut spawned_child in spawned_children {
     let _ = spawned_child.wait();
