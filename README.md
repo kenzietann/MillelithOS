@@ -97,7 +97,7 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Built-in commands (`cd`, `pwd`, `exit`, `help`, `export`).
 - [x] Process execution pipeline using `fork()` and `execve()`.
 - [ ] Unix pipelines (`|`) using inter-process `pipe()` and `dup2()`.
-- [ ] File redirection (`<`, `>`, `>>`).
+- [x] File redirection (`<`, `>`, `>>`).
 
 ### 5. Phase 4: Millelith Core Utilities & Handcrafted Network Stack
 - [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
