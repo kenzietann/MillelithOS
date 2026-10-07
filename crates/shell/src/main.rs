@@ -2,7 +2,7 @@ mod lexers;
 mod commands;
 mod ast;
 
-use lexers::{Lexer, Token};
+use lexers::Lexer;
 use ast::Parser;
 use std::io::{self, Write};
 use commands::*;
@@ -92,11 +92,7 @@ fn main() {
           }
         } else {
           // Multiple commands connected by pipes (|)
-          println!("{COLOR_YELLOW}[AST] Pipeline detected with {} commands!{COLOR_RESET}", pipeline.commands.len());
-          for (index, command) in pipeline.commands.iter().enumerate() {
-            println!("  Command {}: {} (args: {:?})", index + 1, command.program, command.arguments);
-          }
-
+          execute_pipeline(&pipeline.commands);
         }
 
         // Dispatch built-in commands

@@ -1,5 +1,5 @@
 use std::io::{self, Write};
-use crate::ast::OutputRedirect;
+use crate::ast::*;
 use std::fs::{File, OpenOptions};
 
 // ANSI color escape codes for terminal styling 
@@ -140,14 +140,18 @@ pub fn handle_cat(arguments: &[String], input_redirect: &Option<String>, output_
   }
 }
 
-// Execute an external binary by spawning a child process via fork/execve
-pub fn execute_external_command(command_name: &str, arguments: &[String], input_redirect: &Option<String>, output_redirect: &Option<OutputRedirect>) {
-  // Determine target binary path (check direct path or search in /bin)
-  let binary_path = if command_name.starts_with('/') || command_name.starts_with("./") {
+// Resolve a command name into an executable path (direct path or search in /bin)
+fn resolve_binary_path(command_name: &str) -> String {
+  if command_name.starts_with('/') || command_name.starts_with("./") {
     command_name.to_string()
   } else {
     format!("/bin/{command_name}")
-  };
+  }
+}
+
+// Execute an external binary by spawning a child process via fork/execve
+pub fn execute_external_command(command_name: &str, arguments: &[String], input_redirect: &Option<String>, output_redirect: &Option<OutputRedirect>) {
+  let binary_path = resolve_binary_path(command_name);
 
   // Build the child process command with its arguments
   let mut child_command = std::process::Command::new(&binary_path);
@@ -194,6 +198,60 @@ pub fn execute_external_command(command_name: &str, arguments: &[String], input_
     Err(error) => {
       eprintln!("{COLOR_RED}msh: execution error: {error}{COLOR_RESET}");
     }
+  }
+}
+
+// Execute multiple commands connected by pipes(|), running all of them concurrently
+pub fn execute_pipeline(commands: &[SimpleCommand]) {
+  // Read end of the previous command's pipe, used as stdin for the next command
+  let mut previous_pipe_reader: Option<std::process::ChildStdout> = None;
+
+  // Keep every spawned child so we can wait for all of them at the end
+  let mut spawned_children: Vec<std::process::Child> = Vec::new();
+
+  for (command_index, command) in commands.iter().enumerate() {
+    let is_last_command = command_index == commands.len() - 1;
+
+    // Build the child process command with its arguments
+    let binary_path = resolve_binary_path(&command.program);
+    let mut child_command = std::process::Command::new(&binary_path);
+    child_command.args(&command.arguments);
+
+    // Feed the previous command's output into this command's stdin
+    if let Some(pipe_reader) = previous_pipe_reader.take() {
+      child_command.stdin(pipe_reader);
+    }
+    // Capture this command's output into a pipe unless it is the last command
+    if !is_last_command {
+      child_command.stdout(std::process::Stdio::piped());
+    }
+
+    // Start the child process without waiting for it to finish
+    match child_command.spawn() {
+      Ok(mut spawned_child) => {
+        // Keep the read end of the pipe for the next command's stdin
+        previous_pipe_reader = spawned_child.stdout.take();
+        spawned_children.push(spawned_child);
+      }
+      Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+        eprintln!("{COLOR_RED}msh: command not found: {}{COLOR_RESET}", command.program);
+        break;
+      }
+      Err(error) => {
+        eprintln!("{COLOR_RED}msh: execution error: {error}{COLOR_RESET}");
+        break;
+      }
+    }
+
+  }
+
+  // Close our copy of the last pipe reader (only set if the loop broke early),
+  // so the previous child gets EOF/SIGPIPE instead of hanging
+  drop(previous_pipe_reader);
+
+  // Wait for every child so none becomes a zombie
+  for mut spawned_child in spawned_children {
+    let _ = spawned_child.wait();
   }
 }
 
