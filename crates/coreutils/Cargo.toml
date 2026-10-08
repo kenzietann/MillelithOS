@@ -1,0 +1,22 @@
+[package]
+name = "coreutils"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+test = false
+bench = false
+
+[[bin]]
+name = "cat"
+path = "src/bin/cat.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "echo"
+path = "src/bin/echo.rs"
+test = false
+bench = false
+
+[dependencies]
