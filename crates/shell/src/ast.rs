@@ -56,7 +56,6 @@ impl Parser {
                 }
 
                 Token::RedirectRead => {
-                    // Input redirection '<' followed by filename
                     index += 1;
                     if index >= tokens.len() {
                         return Err("Syntax error: expected filename after '<'");

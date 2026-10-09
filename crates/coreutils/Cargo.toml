@@ -25,4 +25,34 @@ path = "src/bin/ls.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "mkdir"
+path = "src/bin/mkdir.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "cp"
+path = "src/bin/cp.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "rm"
+path = "src/bin/rm.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "touch"
+path = "src/bin/touch.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "mv"
+path = "src/bin/mv.rs"
+test = false
+bench = false
+
 [dependencies]

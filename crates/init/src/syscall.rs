@@ -8,7 +8,6 @@ pub const SYS_CLOSE: usize = 3;
 pub const SYS_DUP2: usize = 33;
 pub const SYS_WAIT4: usize = 61;
 pub const SYS_RT_SIGACTION: usize = 13;
-pub const SYS_GETPID: usize = 39;
 pub const SYS_FORK: usize = 57;
 pub const SYS_EXIT: usize = 60;
 pub const SYS_EXECVE: usize = 59;
@@ -267,11 +266,6 @@ pub fn sigaction(signal_number: usize, action: &SigAction) -> isize {
       core::mem::size_of::<u64>()
     )
   }
-}
-
-// Get the current process ID
-pub fn getpid() -> usize {
-  unsafe { syscall0(SYS_GETPID) as usize }
 }
 
 // Clone the current process into a parent and child

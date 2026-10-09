@@ -100,7 +100,21 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] File redirection (`<`, `>`, `>>`).
 
 ### 5. Phase 4: Millelith Core Utilities & Handcrafted Network Stack
-- [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
+
+#### Phase 4.1: Basic File Utilities
+- [x] Run `cat` and `echo` as external programs.
+- [x] List directory entries with `ls`.
+- [x] Create directories with `mkdir`.
+- [x] Create empty files with `touch` without changing existing file contents.
+- [x] Copy a file to a new destination with `cp` and `copy_file_range`.
+- [x] Remove files with `rm`.
+- [x] Rename files and move them into a directory ending in `/` with `mv`.
+- [ ] Verify `touch` timestamp changes by reading file metadata.
+- [ ] Add `rmdir` and recursive or forced removal with `rm -r` and `rm -f`.
+- [ ] Extend `cp` to overwrite destinations and handle filesystems without `copy_file_range` support.
+- [ ] Extend `mv` to detect destination directories without `/` and move across filesystems.
+
+- [ ] Text tools: `grep`, `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
 

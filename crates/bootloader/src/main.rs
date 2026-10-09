@@ -36,8 +36,7 @@ static CMDLINE: &[u16] = &[
     'c' as u16, 'o' as u16, 'n' as u16, 's' as u16, 'o' as u16, 'l' as u16, 'e' as u16, '=' as u16,
     't' as u16, 't' as u16, 'y' as u16, '0' as u16,
     ' ' as u16,
-    'e' as u16, 'a' as u16, 'r' as u16, 'l' as u16, 'y' as u16, 'p' as u16, 'r' as u16, 'i' as u16, 'n' as u16, 't' as u16, 'k' as u16, '=' as u16,
-    'e' as u16, 'f' as u16, 'i' as u16,
+    'l' as u16, 'o' as u16, 'g' as u16, 'l' as u16, 'e' as u16, 'v' as u16, 'e' as u16, 'l' as u16, '=' as u16, '4' as u16,
     0,
 ];
 

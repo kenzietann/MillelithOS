@@ -2,8 +2,8 @@
 
 **Project Name:** Millelith OS  
 **Status:** Phase 4 Millelith Core Utilities & Handcrafted Network Stack
-**Author & Lead Developer:** Kenzie Tann  
-**Core Technologies:** Rust (`crates/bootloader`, `crates/init`, `crates/shell`), Linux Kernel (`vmlinuz`), POSIX/Unix Architecture  
+**Author & Lead Developer:** kenzietann 
+**Core Technologies:** Rust (`crates/bootloader`, `crates/init`, `crates/shell`, `crates/coreutils`), Linux Kernel (`vmlinuz`), POSIX/Unix Architecture  
 **Core Purpose:** An operating system engineered from scratch to master Computer Science in a single, comprehensive project. Built to be a daily-drivable, physical-PC-ready Unix operating system combining a **custom bare-metal Rust UEFI bootloader**, the **Linux kernel as the hardware engine**, and a **100% custom Rust userspace and init system**.
 
 ---
@@ -88,7 +88,21 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 
 ### Phase 4: Millelith Core Utilities & Handcrafted Network Stack
 *Replacing GNU/BusyBox with memory-safe Rust implementations and raw wire networking.*
-- [ ] File manipulation: `ls`, `cat`, `cp`, `mv`, `rm`, `mkdir`.
+
+#### Phase 4.1: Basic File Utilities
+- [x] Run `cat` and `echo` as external programs.
+- [x] List directory entries with `ls`.
+- [x] Create directories with `mkdir`.
+- [x] Create empty files with `touch` without changing existing file contents.
+- [x] Copy a file to a new destination with `cp` and `copy_file_range`.
+- [x] Remove files with `rm`.
+- [x] Rename files and move them into a directory ending in `/` with `mv`.
+- [ ] Verify `touch` timestamp changes by reading file metadata.
+- [ ] Add `rmdir` and recursive or forced removal with `rm -r` and `rm -f`.
+- [ ] Extend `cp` to overwrite destinations and handle filesystems without `copy_file_range` support.
+- [ ] Extend `mv` to detect destination directories without `/` and move across filesystems.
+
+- [ ] Text tools: `grep`, `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
 
@@ -134,4 +148,3 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
    - **Layer 3 (Network):** IPv4 packet structure, ICMP Ping echo crafting, and RFC 1071 one's complement mathematical checksum algorithm.
    - **Layer 4 (Transport):** UDP datagrams, the TCP state machine (3-way handshake, sequence and acknowledgment numbers, sliding window, retransmission), and pseudo-header checksums.
    - **Layer 7 (Application):** RFC 1035 binary DNS query serialization, HTTP/1.1 wire protocol streaming, and BSD Socket lifecycle.
-
