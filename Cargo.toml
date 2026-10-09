@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "crates/bootloader", "crates/init", "crates/shell",
+  "crates/bootloader", "crates/init", "crates/shell", "crates/coreutils",
 ]
 
 resolver = "2"
