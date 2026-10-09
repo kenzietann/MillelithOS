@@ -22,7 +22,6 @@ pub fn handle_help() {
     println!("{COLOR_YELLOW}Millelith Shell (msh) Built-in Commands:{COLOR_RESET}");
     println!("  help     - Show this help reference");
     println!("  clear    - Clear terminal screen");
-    println!("  echo     - Print text arguments to console");
     println!("  pwd      - Print current working directory");
     println!("  cd       - Change working directory");
     println!("  exit     - Terminate shell session");
@@ -74,69 +73,6 @@ pub fn handle_export(arguments: &[String]) {
     } else {
       eprintln!("{COLOR_RED}msh: export: invalid format '{argument}' (expected KEY=VALUE){COLOR_RESET}")
     }
-  }
-}
-
-// Print text arguments to console or redirect output to a file (> or >>)
-pub fn handle_echo(arguments: &[String], output_redirect: &Option<OutputRedirect>){
-  let content = arguments.join(" ");
-
-  match output_redirect {
-    Some(redirect) => {
-      match open_output_file(redirect) {
-        Ok(mut file) => {
-          if let Err(error) = writeln!(file, "{content}") {
-            eprintln!("{COLOR_RED}msh: echo write error: {error}{COLOR_RESET}");
-          }
-        }
-        Err(error) => {
-          eprintln!("{COLOR_RED}msh: failed to open redirect file: {error}{COLOR_RESET}");
-        }
-      }
-    }
-    None => {
-      println!("{content}")
-    }
-  }
-}
-
-// Read file content and print it to console or redirect it to a file (> or >>)
-pub fn handle_cat(arguments: &[String], input_redirect: &Option<String>, output_redirect: &Option<OutputRedirect>) {
-  // Prefer input redirect (<) over the first positional argument
-
-  let target_path = match input_redirect {
-    Some(path) => path.as_str(),
-    None => match arguments.first() {
-      Some(path) => path.as_str(),
-      None => {
-        eprintln!("{COLOR_RED}msh: cat: missing file operand{COLOR_RESET}");
-        return;
-      }
-    }
-  };
-
-  // Read the entier file content into memory
-  let file_content = match std::fs::read_to_string(target_path) {
-    Ok(content) => content,
-    Err(error) => {
-      eprintln!("{COLOR_RED}msh: cat: {target_path}: {error}{COLOR_RESET}");
-      return;
-    }
-  };
-
-  // Write content to redirected file, otherwise print to console
-  match output_redirect {
-    Some(redirect) => match open_output_file(redirect) {
-      Ok(mut output_file) => {
-        if let Err(error) = write!(output_file, "{file_content}") {
-          eprintln!("{COLOR_RED}msh: cat: write error: {error}{COLOR_RESET}");
-        }
-      }
-      Err(error) => {
-        eprintln!("{COLOR_RED}msh: failed to open redirect file: {error}{COLOR_RESET}");
-      }
-    },
-    None => print!("{file_content}"),
   }
 }
 

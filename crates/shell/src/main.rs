@@ -77,15 +77,9 @@ fn main() {
             }
             "help" => handle_help(),
             "clear" => handle_clear(),
-            "echo" => {
-              handle_echo(arguments, &command.output_redirect);
-            }
             "pwd" => handle_pwd(),
             "cd" => handle_cd(arguments),
             "export" => handle_export(arguments),
-            "cat" => {
-              handle_cat(arguments, &command.input_redirect, &command.output_redirect);
-            }
             external_commands => {
               execute_external_command(external_commands, arguments, &command.input_redirect, &command.output_redirect);
             }

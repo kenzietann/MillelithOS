@@ -19,4 +19,10 @@ path = "src/bin/echo.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "ls"
+path = "src/bin/ls.rs"
+test = false
+bench = false
+
 [dependencies]

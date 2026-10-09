@@ -5,6 +5,7 @@ pub const SYS_OPEN: usize = 2;
 pub const SYS_CLOSE: usize = 3;
 pub const SYS_EXIT: usize = 60;
 pub const OPEN_READ_ONLY: usize = 0;
+pub const SYS_GETDENTS64: usize = 217;
 
 // Linux syscall invocation
 #[inline(always)]
@@ -172,4 +173,15 @@ pub fn exit(status: usize) -> ! {
   unsafe { syscall1(SYS_EXIT, status); }
 
   loop {}
+}
+
+pub fn getdents64(file_descriptor: usize, buffer: &mut[u8]) -> isize {
+  unsafe {
+    syscall3(
+      SYS_GETDENTS64,
+      file_descriptor,
+      buffer.as_mut_ptr() as usize,
+      buffer.len()
+    )
+  }
 }

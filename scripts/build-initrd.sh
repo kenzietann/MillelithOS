@@ -9,7 +9,7 @@ ROOTFS="build/rootfs"
 mkdir -p "$ROOTFS"/{bin,sbin,dev,proc,sys} esp
 
 # Utilities from crates/coreutils, add new tool names here
-COREUTILS=(cat echo)
+COREUTILS=(cat echo ls)
 
 # init and coreutils are freestanding (no_std, no libc), shell links against musl
 cargo build --release -p init --target x86_64-unknown-none
