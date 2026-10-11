@@ -12,6 +12,12 @@ pub const SYS_UNLINK: usize = 87;
 pub const SYS_UTIMENSAT: usize = 280;
 pub const AT_FDCWD: usize = (-100isize) as usize;
 pub const SYS_RENAME: usize = 82;
+pub const SYS_RMDIR: usize = 84;
+pub const SYS_OPENAT: usize = 257;
+pub const SYS_UNLINKAT: usize = 263;
+pub const OPEN_DIRECTORY: usize = 1 << 16;
+pub const OPEN_NOFOLLOW: usize = 1 << 17;
+pub const AT_REMOVEDIR: usize = 0x200;
 
 // Linux syscall invocation
 #[inline(always)]
@@ -270,6 +276,35 @@ pub fn rename(old_path: &[u8], new_path: &[u8]) -> isize {
       SYS_RENAME, 
       old_path.as_ptr() as usize,
       new_path.as_ptr() as usize
+    )
+  }
+}
+
+pub fn rmdir(path: &[u8]) -> isize {
+  unsafe { syscall1(SYS_RMDIR, path.as_ptr() as usize) }
+}
+
+pub fn open_dir_at(parent_fd: usize, path: &[u8]) -> isize {
+  unsafe {
+    syscall4(
+      SYS_OPENAT,
+      parent_fd,
+      path.as_ptr() as usize,
+      OPEN_READ_ONLY | OPEN_DIRECTORY | OPEN_NOFOLLOW,
+      0
+    )
+  }
+}
+
+pub fn unlink_at(parent_fd: usize, path: &[u8], remove_dir: bool) -> isize {
+  let flags = if remove_dir { AT_REMOVEDIR } else { 0 };
+
+  unsafe {
+    syscall3(
+      SYS_UNLINKAT,
+      parent_fd,
+      path.as_ptr() as usize,
+      flags,
     )
   }
 }

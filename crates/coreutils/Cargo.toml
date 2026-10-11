@@ -55,4 +55,10 @@ path = "src/bin/mv.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "rmdir"
+path = "src/bin/rmdir.rs"
+test = false
+bench = false
+
 [dependencies]
