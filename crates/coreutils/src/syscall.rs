@@ -18,6 +18,9 @@ pub const SYS_UNLINKAT: usize = 263;
 pub const OPEN_DIRECTORY: usize = 1 << 16;
 pub const OPEN_NOFOLLOW: usize = 1 << 17;
 pub const AT_REMOVEDIR: usize = 0x200;
+pub const SYS_STAT: usize = 4;
+pub const S_IFMT: u32 = 0o170000;
+pub const S_IFDIR: u32 = 0o40000;
 
 // Linux syscall invocation
 #[inline(always)]
@@ -305,6 +308,16 @@ pub fn unlink_at(parent_fd: usize, path: &[u8], remove_dir: bool) -> isize {
       parent_fd,
       path.as_ptr() as usize,
       flags,
+    )
+  }
+}
+
+pub fn stat(path: &[u8], buf: &mut [u8; 144]) -> isize {
+  unsafe {
+    syscall2(
+      SYS_STAT,
+      path.as_ptr() as usize,
+      buf.as_mut_ptr() as usize
     )
   }
 }

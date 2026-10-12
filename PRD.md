@@ -100,7 +100,8 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [ ] Verify `touch` timestamp changes by reading file metadata.
 - [x] Add `rmdir` and basic recursive and force removal with `rm -r` and `rm -f`.
 - [ ] Extend `cp` to overwrite destinations and handle filesystems without `copy_file_range` support.
-- [ ] Extend `mv` to detect destination directories without `/` and move across filesystems.
+- [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
+- [ ] Extend `mv` to move across filesystems.
 
 - [ ] Text tools: `grep`, `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
