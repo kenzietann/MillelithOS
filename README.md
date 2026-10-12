@@ -109,7 +109,7 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Copy a file to a new destination with `cp` and `copy_file_range`.
 - [x] Remove files with `rm`.
 - [x] Rename files and move them into a directory ending in `/` with `mv`.
-- [ ] Verify `touch` timestamp changes by reading file metadata.
+- [x] Verify `touch` timestamp changes by reading file metadata with `stat`.
 - [x] Add `rmdir` and basic recursive and force removal with `rm -r` and `rm -f`.
 - [ ] Extend `cp` to overwrite destinations and handle filesystems without `copy_file_range` support.
 - [x] Detect destination directories without a trailing `/` in `mv` using `stat`.

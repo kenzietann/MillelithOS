@@ -61,4 +61,10 @@ path = "src/bin/rmdir.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "stat"
+path = "src/bin/stat.rs"
+test = false
+bench = false
+
 [dependencies]

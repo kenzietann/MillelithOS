@@ -54,3 +54,21 @@ pub fn print(text: &str) {
 pub fn eprint(text: &str) {
   syscall::write(2, text.as_bytes());
 }
+
+pub fn print_u64(mut value: u64) {
+  let mut digits = [0u8; 20];
+  let mut position = digits.len();
+
+  if value == 0 {
+    position -= 1;
+    digits[position] = b'0';
+  }
+
+  while value > 0 {
+    position -= 1;
+    digits[position] = b'0' + (value % 10) as u8;
+    value /= 10;
+  }
+
+  syscall::write(1, &digits[position..]);
+}
