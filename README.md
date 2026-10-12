@@ -112,7 +112,8 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Verify `touch` timestamp changes by reading file metadata with `stat`.
 - [x] Add `rmdir` and basic recursive and force removal with `rm -r` and `rm -f`.
 - [x] Extend `cp` to overwrite existing destinations and reject copying a file onto itself.
-- [ ] Extend `cp` to handle filesystems without `copy_file_range` support and to copy into a directory.
+- [x] Copy into an existing directory with `cp`, sharing destination resolution with `mv`.
+- [ ] Extend `cp` to fall back to read and write on filesystems without `copy_file_range` support.
 - [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
 - [ ] Extend `mv` to move across filesystems.
 

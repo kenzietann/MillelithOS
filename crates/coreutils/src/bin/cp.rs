@@ -2,7 +2,7 @@
 #![no_main]
 
 use coreutils::syscall::{OPEN_READ_ONLY, SYS_OPEN, close, copy_file_range, open, syscall3, stat};
-use coreutils::{arg, eprint};
+use coreutils::{arg, eprint, resolve_target};
 
 const OPEN_WRITE_ONLY: usize = 1;
 const OPEN_CREATE: usize = 0o100;
@@ -28,6 +28,13 @@ pub extern "C" fn main_entry(argc: usize, argv: *const *const u8) -> usize {
 
   let source_path = arg(argv, 1);
   let target_path = arg(argv, 2);
+  let destination_path = arg(argv, 2);
+  let mut path_buffer = [0u8; 4096];
+
+  let Some(target_path) = resolve_target(source_path, destination_path, &mut path_buffer) else {
+    eprint("cp: invalid destination path\n");
+    return 1;
+  };
 
   let source_fd = open(source_path, OPEN_READ_ONLY);
   if source_fd < 0 {

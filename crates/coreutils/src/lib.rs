@@ -72,3 +72,54 @@ pub fn print_u64(mut value: u64) {
 
   syscall::write(1, &digits[position..]);
 }
+
+pub fn is_dir(path: &[u8]) -> bool {
+  let mut buf = [0u8; 144];
+  if syscall::stat(path, &mut buf) < 0 {
+    return false;
+  }
+
+  let mode = u32::from_le_bytes([buf[24], buf[25], buf[26], buf[27]]);
+  mode & syscall::S_IFMT == syscall::S_IFDIR
+}
+
+pub fn resolve_target<'a>(
+  source: &[u8],
+  destination: &'a [u8],
+  buffer: &'a mut [u8],
+) -> Option<&'a [u8]> {
+  let has_slash = destination.len() >= 2 && destination[destination.len() - 2] == b'/';
+
+  if !has_slash && !is_dir(destination) {
+    return Some(destination);
+  }
+
+  let source_name = &source[..source.len() - 1];
+  let mut name_start = 0;
+
+  for index in 0..source_name.len() {
+    if source_name[index] == b'/' {
+      name_start = index + 1;
+    }
+  }
+
+  let basename = &source_name[name_start..];
+  let prefix = &destination[..destination.len() - 1];
+  let slash_len = (!has_slash) as usize;
+  let total = prefix.len() + slash_len + basename.len() + 1;
+
+  if basename.is_empty() || total > buffer.len() {
+    return None;
+  }
+
+  buffer[..prefix.len()].copy_from_slice(prefix);
+  if slash_len == 1 {
+    buffer[prefix.len()] = b'/';
+  }
+
+  let name_offset = prefix.len() + slash_len;
+  buffer[name_offset..name_offset + basename.len()].copy_from_slice(basename);
+  buffer[total - 1] = 0;
+
+  Some(&buffer[..total])
+}
