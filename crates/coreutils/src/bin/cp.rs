@@ -27,7 +27,6 @@ pub extern "C" fn main_entry(argc: usize, argv: *const *const u8) -> usize {
   }
 
   let source_path = arg(argv, 1);
-  let target_path = arg(argv, 2);
   let destination_path = arg(argv, 2);
   let mut path_buffer = [0u8; 4096];
 
