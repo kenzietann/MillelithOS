@@ -1,12 +1,23 @@
 #![no_std]
 #![no_main]
 
-use coreutils::syscall::{OPEN_READ_ONLY, SYS_OPEN, close, copy_file_range, open, syscall3};
+use coreutils::syscall::{OPEN_READ_ONLY, SYS_OPEN, close, copy_file_range, open, syscall3, stat};
 use coreutils::{arg, eprint};
 
 const OPEN_WRITE_ONLY: usize = 1;
 const OPEN_CREATE: usize = 0o100;
-const OPEN_EXCLUSIVE: usize = 0o200;
+const OPEN_TRUNCATE: usize = 0o1000;
+
+fn same_file(first: &[u8], second: &[u8]) -> bool {
+  let mut first_buf = [0u8; 144];
+  let mut second_buf = [0u8; 144];
+
+  if stat(first, &mut first_buf) < 0 || stat(second, &mut second_buf) < 0 {
+    return false;
+  }
+
+  first_buf[0..16] == second_buf[0..16]
+}
 
 #[unsafe(no_mangle)]
 pub extern "C" fn main_entry(argc: usize, argv: *const *const u8) -> usize {
@@ -24,11 +35,17 @@ pub extern "C" fn main_entry(argc: usize, argv: *const *const u8) -> usize {
     return 1;
   }
 
+  if same_file(source_path, target_path) {
+    close(source_fd as usize);
+    eprint("cp: source and destination are the same file\n");
+    return 1;
+  }
+
   let target_fd = unsafe {
     syscall3(
       SYS_OPEN,
       target_path.as_ptr() as usize,
-      OPEN_WRITE_ONLY | OPEN_CREATE | OPEN_EXCLUSIVE,
+      OPEN_WRITE_ONLY | OPEN_CREATE | OPEN_TRUNCATE,
       0o644
     )
   };
