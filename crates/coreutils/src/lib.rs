@@ -4,6 +4,10 @@ pub mod syscall;
 
 use core::panic::PanicInfo;
 
+const EXDEV: isize = -18;
+const EINVAL: isize = -22;
+const ENOSYS: isize = -38;
+
 unsafe extern "C" {
   fn main_entry(argc: usize, argv: *const *const u8) -> usize;
 }
@@ -122,4 +126,51 @@ pub fn resolve_target<'a>(
   buffer[total - 1] = 0;
 
   Some(&buffer[..total])
+}
+
+fn copy_read_write(source_fd: usize, target_fd: usize) -> bool {
+  let mut buffer = [0u8; 4096];
+
+  loop {
+    let count = syscall::read(source_fd, &mut buffer);
+
+    if count < 0 {
+      return false;
+    }
+
+    if count == 0 {
+      return true;
+    }
+
+    let count = count as usize;
+    let mut written = 0;
+
+    while written < count {
+      let result = syscall::write(target_fd, &buffer[written..count]);
+
+      if result <= 0 {
+        return false;
+      }
+
+      written += result as usize;
+    }
+  }
+}
+
+pub fn copy_fd(source_fd: usize, target_fd: usize) -> bool {
+  loop {
+    let copied = syscall::copy_file_range(source_fd, target_fd, 64 * 1024);
+
+    if copied == 0 {
+      return true;
+    }
+
+    if copied < 0 {
+      if copied == EXDEV || copied == EINVAL || copied == ENOSYS {
+        return copy_read_write(source_fd, target_fd);
+      }
+
+      return false;
+    }
+  }
 }

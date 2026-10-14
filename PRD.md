@@ -101,7 +101,7 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Add `rmdir` and basic recursive and force removal with `rm -r` and `rm -f`.
 - [x] Extend `cp` to overwrite existing destinations and reject copying a file onto itself.
 - [x] Copy into an existing directory with `cp`, sharing destination resolution with `mv`.
-- [ ] Extend `cp` to fall back to read and write on filesystems without `copy_file_range` support.
+- [x] Extend `cp` to fall back to read and write when `copy_file_range` is unsupported for a file pair.
 - [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
 - [ ] Extend `mv` to move across filesystems.
 

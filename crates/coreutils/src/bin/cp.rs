@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-use coreutils::syscall::{OPEN_READ_ONLY, SYS_OPEN, close, copy_file_range, open, syscall3, stat};
-use coreutils::{arg, eprint, resolve_target};
+use coreutils::syscall::{OPEN_READ_ONLY, SYS_OPEN, close, open, syscall3, stat};
+use coreutils::{arg, copy_fd, eprint, resolve_target};
 
 const OPEN_WRITE_ONLY: usize = 1;
 const OPEN_CREATE: usize = 0o100;
@@ -62,19 +62,11 @@ pub extern "C" fn main_entry(argc: usize, argv: *const *const u8) -> usize {
     return 1;
   }
 
-  loop {
-    let copied = copy_file_range(source_fd as usize, target_fd as usize, 64 * 1024);
-
-    if copied < 0 {
-      eprint("cp: copy failed\n");
-      close(target_fd as usize);
-      close(source_fd as usize);
-      return 1;
-    }
-
-    if copied == 0 {
-      break;
-    }
+  if !copy_fd(source_fd as usize, target_fd as usize) {
+    eprint("cp: copy failed\n");
+    close(target_fd as usize);
+    close(source_fd as usize);
+    return 1;
   }
 
   let target_close = close(target_fd as usize);
