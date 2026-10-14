@@ -117,7 +117,8 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
 - [ ] Extend `mv` to move across filesystems.
 
-- [ ] Text tools: `grep`, `more`, `less`, `sed`, `zcat`.
+- [x] Search a file for lines containing a literal pattern with `grep`.
+- [ ] Text tools: `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
 

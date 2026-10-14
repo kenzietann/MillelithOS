@@ -105,7 +105,8 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
 - [ ] Extend `mv` to move across filesystems.
 
-- [ ] Text tools: `grep`, `more`, `less`, `sed`, `zcat`.
+- [x] Search a file for lines containing a literal pattern with `grep`.
+- [ ] Text tools: `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
 

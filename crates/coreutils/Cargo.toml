@@ -67,4 +67,10 @@ path = "src/bin/stat.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "grep"
+path = "src/bin/grep.rs"
+test = false
+bench = false
+
 [dependencies]
