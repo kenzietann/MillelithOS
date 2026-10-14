@@ -105,22 +105,21 @@ For the detailed technical specifications and milestone roadmap, see [PRD.md](PR
 - [x] Run `cat` and `echo` as external programs.
 - [x] List directory entries with `ls`.
 - [x] Create directories with `mkdir`.
-- [x] Create empty files with `touch` without changing existing file contents.
-- [x] Copy a file to a new destination with `cp` and `copy_file_range`.
-- [x] Remove files with `rm`.
-- [x] Rename files and move them into a directory ending in `/` with `mv`.
-- [x] Verify `touch` timestamp changes by reading file metadata with `stat`.
-- [x] Add `rmdir` and basic recursive and force removal with `rm -r` and `rm -f`.
-- [x] Extend `cp` to overwrite existing destinations and reject copying a file onto itself.
-- [x] Copy into an existing directory with `cp`, sharing destination resolution with `mv`.
-- [x] Extend `cp` to fall back to read and write when `copy_file_range` is unsupported for a file pair.
-- [x] Detect destination directories without a trailing `/` in `mv` using `stat`.
-- [ ] Extend `mv` to move across filesystems.
-
+- [x] Create empty files and update timestamps with `touch`.
+- [x] Copy files with `cp`, including overwrite, copy into a directory, and a read/write fallback.
+- [x] Remove files and directories with `rm` (`-r`, `-f`) and `rmdir`.
+- [x] Rename and move files with `mv`, including into directories and across filesystems.
+- [x] Inspect file size and modification time with `stat`.
 - [x] Search a file for lines containing a literal pattern with `grep`.
 - [ ] Text tools: `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
+
+Known limitations of the basic file utilities:
+- `cp` copies single files only (no `-r`) and creates new files with mode `0644`.
+- `mv` cannot move directories across filesystems and does not preserve mode or timestamps when it copies.
+- `rm -r` does not detect mount points and stops at a depth of 32.
+- `grep` matches literal text in a single file and truncates lines longer than 4096 bytes.
 
 **Handcrafted Layer 2 (Data Link):**
 - [ ] Bring the network interface up and discover the local MAC address via `ioctl` (`SIOCSIFFLAGS`, `SIOCGIFHWADDR`).
