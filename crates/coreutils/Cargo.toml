@@ -79,4 +79,10 @@ path = "src/bin/more.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "less"
+path = "src/bin/less.rs"
+test = false
+bench = false
+
 [dependencies]

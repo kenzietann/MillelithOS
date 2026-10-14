@@ -21,6 +21,9 @@ pub const AT_REMOVEDIR: usize = 0x200;
 pub const SYS_STAT: usize = 4;
 pub const S_IFMT: u32 = 0o170000;
 pub const S_IFDIR: u32 = 0o40000;
+pub const SYS_IOCTL: usize = 16;
+pub const TCGETS: usize = 0x5401;
+pub const TCSETS: usize = 0x5402;
 
 // Linux syscall invocation
 #[inline(always)]
@@ -318,6 +321,28 @@ pub fn stat(path: &[u8], buf: &mut [u8; 144]) -> isize {
       SYS_STAT,
       path.as_ptr() as usize,
       buf.as_mut_ptr() as usize
+    )
+  }
+}
+
+pub fn get_termios(file_descriptor: usize, termios: &mut [u8; 36]) -> isize {
+  unsafe {
+    syscall3(
+      SYS_IOCTL,
+      file_descriptor,
+      TCGETS,
+      termios.as_mut_ptr() as usize
+    )
+  }
+}
+
+pub fn set_termios(file_descriptor: usize, termios: &[u8; 36]) -> isize {
+  unsafe {
+    syscall3(
+      SYS_IOCTL,
+      file_descriptor,
+      TCSETS,
+      termios.as_ptr() as usize
     )
   }
 }
