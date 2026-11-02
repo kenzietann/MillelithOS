@@ -3,6 +3,7 @@
 pub mod syscall;
 
 use core::panic::PanicInfo;
+use syscall::{ read, OPEN_READ_ONLY, close, open};
 
 const EXDEV: isize = -18;
 const EINVAL: isize = -22;
@@ -191,4 +192,32 @@ pub fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
   }
 
   None
+}
+
+pub fn load_file(path: &[u8], buffer: &mut [u8]) -> Option<usize> {
+  let file_fd = open(path, OPEN_READ_ONLY);
+
+  if file_fd < 0 {
+    return None;
+  }
+
+  let mut length = 0;
+
+  while length < buffer.len() {
+    let count = read(file_fd as usize, &mut buffer[length..]);
+
+    if count < 0 {
+      close(file_fd as usize);
+      return None;
+    }
+
+    if count == 0 {
+      break;
+    }
+
+    length += count as usize;
+  }
+
+  close(file_fd as usize);
+  Some(length)
 }

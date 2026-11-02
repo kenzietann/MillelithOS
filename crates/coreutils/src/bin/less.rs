@@ -1,8 +1,8 @@
 #![no_std]
 #![no_main]
 
-use coreutils::{arg, eprint, print, print_u64};
-use coreutils::syscall::{get_termios, read, set_termios, OPEN_READ_ONLY, close, open, write};
+use coreutils::{arg, eprint, print, print_u64, load_file};
+use coreutils::syscall::{get_termios, read, set_termios, write};
 
 const LFLAG_OFFSET: usize = 12;
 const ICANON: u32 = 0o2;
@@ -41,34 +41,6 @@ fn enter_raw_mode() -> Option<[u8; 36]> {
 
   Some(saved)
 
-}
-
-fn load_file(path: &[u8], buffer: &mut [u8]) -> Option<usize> {
-  let file_fd = open(path, OPEN_READ_ONLY);
-
-  if file_fd < 0 {
-    return None;
-  }
-
-  let mut length = 0;
-
-  while length < buffer.len() {
-    let count = read(file_fd as usize, &mut buffer[length..]);
-
-    if count < 0 {
-      close(file_fd as usize);
-      return None;
-    }
-
-    if count == 0 {
-      break;
-    }
-
-    length += count as usize;
-  }
-
-  close(file_fd as usize);
-  Some(length)
 }
 
 fn index_lines(text: &[u8], starts: &mut [u32]) -> usize {
