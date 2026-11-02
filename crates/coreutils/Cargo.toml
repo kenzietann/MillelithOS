@@ -85,4 +85,10 @@ path = "src/bin/less.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "sed"
+path = "src/bin/sed.rs"
+test = false
+bench = false
+
 [dependencies]

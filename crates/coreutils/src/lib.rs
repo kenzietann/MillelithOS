@@ -176,19 +176,19 @@ pub fn copy_fd(source_fd: usize, target_fd: usize) -> bool {
 }
 
 pub fn contains(haystack: &[u8], needle: &[u8]) -> bool {
-  if needle.is_empty() {
-    return true;
-  }
+  find(haystack, needle).is_some()
+}
 
+pub fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
   if needle.len() > haystack.len() {
-    return false;
+    return None;
   }
 
   for start in 0..=haystack.len() - needle.len() {
     if &haystack[start..start + needle.len()] == needle {
-      return true;
+      return Some(start);
     }
   }
 
-  false
+  None
 }
