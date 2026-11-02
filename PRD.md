@@ -87,9 +87,6 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] File redirection (<, >, >>)
 
 ### Phase 4: Millelith Core Utilities & Handcrafted Network Stack
-*Replacing GNU/BusyBox with memory-safe Rust implementations and raw wire networking.*
-
-#### Phase 4.1: Basic File Utilities
 - [x] Run `cat` and `echo` as external programs.
 - [x] List directory entries with `ls`.
 - [x] Create directories with `mkdir`.
@@ -99,15 +96,19 @@ Writing modern hardware drivers (5G WiFi, Nvidia/AMD 3D GPU pipelines, USB 3.2 x
 - [x] Rename and move files with `mv`, including into directories and across filesystems.
 - [x] Inspect file size and modification time with `stat`.
 - [x] Search a file for lines containing a literal pattern with `grep`.
-- [ ] Text tools: `more`, `less`, `sed`, `zcat`.
+- [x] Text tools: `more`, `less`, `sed`, `zcat`.
 - [ ] Process inspection: `ps` (parsing `/proc`), `kill`.
 - [ ] System diagnostics: `uname`, `free`, `uptime`.
 
-Known limitations of the basic file utilities:
+Known limitations of the file and text utilities:
 - `cp` copies single files only (no `-r`) and creates new files with mode `0644`.
 - `mv` cannot move directories across filesystems and does not preserve mode or timestamps when it copies.
 - `rm -r` does not detect mount points and stops at a depth of 32.
 - `grep` matches literal text in a single file and truncates lines longer than 4096 bytes.
+- `more` shows a fixed 22 lines per page, needs Enter to continue and cannot scroll back.
+- `less` reads at most 256 KiB and 8192 lines, cuts lines at 80 columns, shows a fixed 22 rows and needs a file argument (no stdin).
+- `sed` supports only `s/OLD/NEW/` and `s/OLD/NEW/g` with literal text on a single file (no regex, no stdin) and truncates lines longer than 4096 bytes.
+- `zcat` reads a single gzip file of at most 256 KiB (no stdin, no options).
 
 **Handcrafted Layer 2 (Data Link):**
 - [ ] Bring the network interface up and discover the local MAC address via `ioctl` (`SIOCSIFFLAGS`, `SIOCGIFHWADDR`).
