@@ -91,4 +91,10 @@ path = "src/bin/sed.rs"
 test = false
 bench = false
 
+[[bin]]
+name = "zcat"
+path = "src/bin/zcat.rs"
+test = false
+bench = false
+
 [dependencies]
